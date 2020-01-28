@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://www.severin.xyz/404.html</loc>
+    
+    <lastmod>2020-01-28T06:37:46.274Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://www.severin.xyz/2020/01/27/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/</loc>
     
     <lastmod>2020-01-28T06:30:42.575Z</lastmod>
@@ -33,13 +40,6 @@
     <loc>https://www.severin.xyz/categories/index.html</loc>
     
     <lastmod>2020-01-28T03:15:02.282Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://www.severin.xyz/404.html</loc>
-    
-    <lastmod>2020-01-28T03:14:10.750Z</lastmod>
     
   </url>
   
