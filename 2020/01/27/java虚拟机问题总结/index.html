@@ -868,6 +868,9 @@
           
           
         
+          
+          
+        
       
         
           
@@ -898,6 +901,45 @@
           
           
         
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              
+  <section class='widget toc-wrapper'>
+    
+<header class='pure'>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
+  
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
+  
+</header>
+
+    <div class='content pure'>
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#java虚拟机复习"><span class="toc-text">java虚拟机复习</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#一-自动内存管理机制"><span class="toc-text">一. 自动内存管理机制</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-java虚拟机运行时数据区有哪些，各自的功能"><span class="toc-text">1. java虚拟机运行时数据区有哪些，各自的功能</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-什么是运行时常量池，存放什么"><span class="toc-text">2. 什么是运行时常量池，存放什么</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-什么是直接内存，有什么用"><span class="toc-text">3.什么是直接内存，有什么用</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-对象是如何创建的"><span class="toc-text">4. 对象是如何创建的</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-对象在内存中是怎样分配的"><span class="toc-text">5.对象在内存中是怎样分配的</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-如何定位到一个对象，这些方法有什么优点和缺点"><span class="toc-text">6. 如何定位到一个对象，这些方法有什么优点和缺点</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-JVM中可能发生的OOM的情况"><span class="toc-text">7. JVM中可能发生的OOM的情况</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-如何确定哪些内存需要回收"><span class="toc-text">8. 如何确定哪些内存需要回收</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-哪些对象可以作为GC-ROOT"><span class="toc-text">9. 哪些对象可以作为GC ROOT</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-引用有哪些类型"><span class="toc-text">10. 引用有哪些类型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#11-finalize方法的作用"><span class="toc-text">11. finalize方法的作用</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#12-方法区是否会被回收，回收的内容是什么，什么时候需要回收方法区"><span class="toc-text">12. 方法区是否会被回收，回收的内容是什么，什么时候需要回收方法区</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#13-有哪些垃圾收集算法"><span class="toc-text">13. 有哪些垃圾收集算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#14-什么是OopMap"><span class="toc-text">14. 什么是OopMap</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#15-什么是安全点"><span class="toc-text">15. 什么是安全点</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#16-什么是安全区域"><span class="toc-text">16. 什么是安全区域</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#18-CMS收集器的工作过程"><span class="toc-text">18. CMS收集器的工作过程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#19-G1收集器的工作过程"><span class="toc-text">19. G1收集器的工作过程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#20-现在有哪些新的垃圾收集器，特点是什么，怎么工作的"><span class="toc-text">20. 现在有哪些新的垃圾收集器，特点是什么，怎么工作的</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#21-对象分配要遵循哪些策略"><span class="toc-text">21. 对象分配要遵循哪些策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#22-如何判断对象的年龄"><span class="toc-text">22. 如何判断对象的年龄</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#二-虚拟机执行子系统"><span class="toc-text">二. 虚拟机执行子系统</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-什么是java的平台无关性和语言无关性"><span class="toc-text">1. 什么是java的平台无关性和语言无关性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-说一下Class文件的结构"><span class="toc-text">2. 说一下Class文件的结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-类加载时机"><span class="toc-text">3. 类加载时机</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-类加载的过程"><span class="toc-text">4. 类加载的过程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-有哪些类加载器"><span class="toc-text">5. 有哪些类加载器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-什么是双亲委派模型"><span class="toc-text">6. 什么是双亲委派模型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-双亲委派模型的好处"><span class="toc-text">9. 双亲委派模型的好处</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-如何实现自定义类加载器"><span class="toc-text">10. 如何实现自定义类加载器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#11-有哪些破坏双亲委派模型的例子"><span class="toc-text">11. 有哪些破坏双亲委派模型的例子</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#12-栈帧存放了什么"><span class="toc-text">12. 栈帧存放了什么</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#13-局部变量表存放什么"><span class="toc-text">13. 局部变量表存放什么</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#14-操作数栈的运行过程"><span class="toc-text">14. 操作数栈的运行过程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#15-动态链接是什么"><span class="toc-text">15. 动态链接是什么</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#null"><span class="toc-text"></span></a></li></ol></li></ol>
+    </div>
+  </section>
+
+
+            
+          
+        
+          
+          
+        
+          
+          
+        
       
         
           
@@ -912,21 +954,13 @@
           
           
         
-      
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
           
           
         
       
+        
+          
+          
         
           
           
@@ -958,6 +992,9 @@
         
           
           
+        
+          
+          
             
               
 
@@ -978,7 +1015,13 @@
           
           
         
+          
+          
+        
       
+        
+          
+          
         
           
           
