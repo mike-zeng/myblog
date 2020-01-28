@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 曾宪辉的博客
+title: Severin的博客
 subtitle: ''
 description: ''
 keywords:
-author: John Doe
+author: Severin
 language: en
 timezone: ''
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: https://severin.xyz
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -98,7 +98,9 @@ theme: material
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: ''
+  type: git #部署方式
+  repository: git@github.com:mike-zeng/myblog.git #关联github仓库
+  branch: run-page #部署分支
 
 # 评论
 livere_uid: MTAyMC80MDM2OS8xNjg5Ng==
