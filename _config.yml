@@ -13,7 +13,7 @@ timezone: ''
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: https://severin.xyz
+url: https://www.severin.xyz
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -107,3 +107,12 @@ livere_uid: MTAyMC80MDM2OS8xNjg5Ng==
 
 # 使用cdn
 use_cdn: true
+
+# 自动生成sitemap
+sitemap: 
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
+
+# 网站favicon
+favicon: https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/favicon.ico
