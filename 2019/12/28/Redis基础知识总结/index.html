@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <title>Redis基础知识总结 | Severin的博客</title>
+  
+  
+
+  
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- meta -->
+  
+
+  <!-- link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.10.1/css/all.min.css">
+  
+
+  
+  <link rel="shortcut icon" type='image/x-icon' href="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/favicon.ico">
+  
+
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11.26/css/style.css">
+
+  
+
+  <script>
+    function setLoadingBarProgress(num) {
+      document.getElementById('loading-bar').style.width=num+"%";
+    }
+  </script>
+
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  
+  
+  <div class="cover-wrapper">
+    <cover class='cover post half'>
+      
+        
+  <h1 class='title'>Severin</h1>
+
+
+  <div class="m_search">
+    <form name="searchform" class="form u-search-form">
+      <input type="text" class="input u-search-input" placeholder="" />
+      <i class="icon fas fa-search fa-fw"></i>
+    </form>
+  </div>
+
+<div class='menu navgation'>
+  <ul class='h-list'>
+    
+      
+        <li>
+          <a class="nav home" href="/"
+            
+            
+            id="home">
+            <i class='fas fa-rss fa-fw'></i>&nbsp;博文
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/friends/"
+            
+              rel="nofollow"
+            
+            
+            id="friends">
+            <i class='fas fa-link fa-fw'></i>&nbsp;友链
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/about/"
+            
+              rel="nofollow"
+            
+            
+            id="about">
+            <i class='fas fa-info-circle fa-fw'></i>&nbsp;关于
+          </a>
+        </li>
+      
+    
+  </ul>
+</div>
+
+      
+    </cover>
+    <header class="l_header pure">
+  <div id="loading-bar-wrapper">
+    <div id="loading-bar" class="pure"></div>
+  </div>
+
+	<div class='wrapper'>
+		<div class="nav-main container container--flex">
+      <a class="logo flat-box" href='/' >
+        
+          Severin的博客
+        
+      </a>
+			<div class='menu navgation'>
+				<ul class='h-list'>
+          
+  					
+  						<li>
+								<a class="nav flat-box" href="/"
+                  
+                  
+                  id="home">
+									<i class='fas fa-grin fa-fw'></i>&nbsp;示例
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/categories/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="categories">
+									<i class='fas fa-folder-open fa-fw'></i>&nbsp;分类
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/tags/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="tags">
+									<i class='fas fa-hashtag fa-fw'></i>&nbsp;标签
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/archives/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="archives">
+									<i class='fas fa-archive fa-fw'></i>&nbsp;归档
+								</a>
+							</li>
+      			
+      		
+				</ul>
+			</div>
+
+			
+				<div class="m_search">
+					<form name="searchform" class="form u-search-form">
+						<input type="text" class="input u-search-input" placeholder="Search" />
+						<i class="icon fas fa-search fa-fw"></i>
+					</form>
+				</div>
+			
+			<ul class='switcher h-list'>
+				
+					<li class='s-search'><a class="fas fa-search fa-fw" href='javascript:void(0)'></a></li>
+				
+				<li class='s-menu'><a class="fas fa-bars fa-fw" href='javascript:void(0)'></a></li>
+			</ul>
+		</div>
+
+		<div class='nav-sub container container--flex'>
+			<a class="logo flat-box"></a>
+			<ul class='switcher h-list'>
+				<li class='s-comment'><a class="flat-btn fas fa-comments fa-fw" href='javascript:void(0)'></a></li>
+        
+          <li class='s-toc'><a class="flat-btn fas fa-list fa-fw" href='javascript:void(0)'></a></li>
+        
+			</ul>
+		</div>
+	</div>
+</header>
+	<aside class="menu-phone">
+    <header>
+		<nav class="menu navgation">
+      <ul>
+        
+          
+            <li>
+							<a class="nav flat-box" href="/"
+                
+                
+                id="home">
+								<i class='fas fa-clock fa-fw'></i>&nbsp;近期文章
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/blog/archives/"
+                
+                  rel="nofollow"
+                
+                
+                id="blogarchives">
+								<i class='fas fa-archive fa-fw'></i>&nbsp;文章归档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/projects/"
+                
+                
+                id="projects">
+								<i class='fas fa-code-branch fa-fw'></i>&nbsp;开源项目
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/friends/"
+                
+                  rel="nofollow"
+                
+                
+                id="friends">
+								<i class='fas fa-link fa-fw'></i>&nbsp;我的友链
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="https://xaoxuu.com/wiki/material-x/"
+                
+                  rel="nofollow"
+                
+                
+                id="https:xaoxuu.comwikimaterial-x">
+								<i class='fas fa-book fa-fw'></i>&nbsp;主题文档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/about/"
+                
+                  rel="nofollow"
+                
+                
+                id="about">
+								<i class='fas fa-info-circle fa-fw'></i>&nbsp;关于小站
+							</a>
+            </li>
+          
+       
+      </ul>
+		</nav>
+    </header>
+	</aside>
+<script>setLoadingBarProgress(40);</script>
+
+  </div>
+
+
+  <div class="l_body">
+    <div class='body-wrapper'>
+      <div class='l_main'>
+  
+
+  <article id="post" class="post white-box article-type-post" itemscope itemprop="blogPost">
+    
+
+
+  <section class='meta'>
+    
+    
+    <div class="meta" id="header-meta">
+      
+        
+  
+    <h1 class="title">
+      <a href="/2019/12/28/Redis%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/">
+        Redis基础知识总结
+      </a>
+    </h1>
+  
+
+
+      
+      <div class='new-meta-box'>
+        
+          
+        
+          
+            
+  <div class='new-meta-item author'>
+    
+      <a href="https://www.severin.xyz" rel="nofollow">
+        
+          <i class="fas fa-user" aria-hidden="true"></i>
+        
+        <p>Severin</p>
+      </a>
+    
+  </div>
+
+
+          
+        
+          
+            <div class="new-meta-item date">
+  <a class='notlink'>
+    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+    <p>2019-12-28</p>
+  </a>
+</div>
+
+          
+        
+          
+            
+  
+  <div class='new-meta-item category'>
+    <a href='/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/' rel="nofollow">
+      <i class="fas fa-folder-open" aria-hidden="true"></i>
+      <p>数据库&nbsp;/&nbsp;redis</p>
+    </a>
+  </div>
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item browse busuanzi">
+      <a class='notlink'>
+        <i class="fas fa-eye" aria-hidden="true"></i>
+        <p>
+          <span id="busuanzi_value_page_pv">
+            <i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i>
+          </span>
+        </p>
+      </a>
+    </div>
+  
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item wordcount">
+      <a class='notlink'>
+        <i class="fas fa-keyboard" aria-hidden="true"></i>
+        <p>字数统计:</p>
+        <p>11.3k字</p>
+      </a>
+    </div>
+    <div class="new-meta-item readtime">
+      <a class='notlink'>
+        <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+        <p>阅读时长≈</p>
+        <p>39分</p>
+      </a>
+    </div>
+  
+
+          
+        
+          
+            
+
+          
+        
+      </div>
+      
+        <hr>
+      
+    </div>
+  </section>
+
+
+    <section class="article typo">
+      <div class="article-entry" itemprop="articleBody">
+        <h4 id="1-初识Redis"><a href="#1-初识Redis" class="headerlink" title="1. 初识Redis"></a>1. 初识Redis</h4><p><a href="https://zhuanlan.zhihu.com/p/42272979" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/42272979</a></p>
+<p><strong>1. Redis有哪些特性</strong></p>
+<p>首先<strong>Redis的速度非常快</strong>，并且<strong>Redis支持多种数据结构</strong>，还<strong>提供了许多丰富的功能</strong>如提供了键过期的功能，发布订阅功能，支持Lua脚本等功能；<strong>Redis简单稳定</strong>，源码非常简洁；<strong>支持的客户端语言很多</strong>；<strong>支持持久化</strong>，发生断电不会丢失数据；提供了<strong>主从复制的功能</strong>；提供了<strong>集群的功能</strong>，适合分布式环境</p>
+<p><strong>2. Redis为什么快</strong></p>
+<ol>
+<li><p><strong>完全基于内存</strong>，绝大部分请求是纯粹的内存操作，非常快速。数据存在内存中，类似于HashMap，HashMap的优势就是查找和操作的时间复杂度都是O(1)；</p>
+</li>
+<li><p><strong>数据结构简单，对数据操作也简单</strong>，Redis中的数据结构是专门进行设计的；</p>
+</li>
+<li><p>采用<strong>单线程，避免了不必要的上下文切换和竞争条件</strong>，也不存在多进程或者多线程导致的切换而消耗 CPU，不用去考虑各种锁的问题，不存在加锁释放锁操作，没有因为可能出现死锁而导致的性能消耗；</p>
+</li>
+<li><p><strong>使用多路I/O复用模型，非阻塞IO</strong>；</p>
+</li>
+<li><p>使用底层模型不同，它们之间底层实现方式以及与客户端之间通信的应用协议不一样，Redis直接自己构建了VM 机制 ，因为一般的系统调用系统函数的话，会浪费一定的时间去移动和请求；</p>
+</li>
+</ol>
+<p><strong>3. Redis有哪些应用场景</strong></p>
+<ul>
+<li><p>缓存</p>
+<p>redis提供了键值过期时间设置，并且也提供了灵活控制最大内存和内存溢出后的淘汰策略，适合作为缓存。</p>
+</li>
+<li><p>排行榜系统</p>
+<p>Redis提供类表和有序集合数据结构，方便实现各种排行榜</p>
+</li>
+<li><p>计数器应用</p>
+<p>Redis天然支持计数功能且性能非常好。</p>
+</li>
+<li><p>社交网络</p>
+<p>redis可以很方便的实现点赞，共同好友等功能</p>
+</li>
+<li><p>消息队列系统</p>
+<p>Redis提供了发布订阅功能和阻塞队列的功能</p>
+</li>
+</ul>
+<p><strong>4. Redis不适合什么样的应用</strong></p>
+<p>使用Redis，基于成本考虑，最大的问题是内存的价格比较昂贵，而Redis将数据全部放在内存中，而基于内存又提供了快速访问的能力，如果一个应用中的数据量比较大并且不需要经常访问就不适合使用Redis来存放这些量大且冷门的数据。</p>
+<hr>
+<h4 id="2-Redis的数据结构"><a href="#2-Redis的数据结构" class="headerlink" title="2. Redis的数据结构"></a>2. Redis的数据结构</h4><hr>
+<h4 id="3-小功能大用处"><a href="#3-小功能大用处" class="headerlink" title="3. 小功能大用处"></a>3. 小功能大用处</h4><p><strong>1. Redis命令执行的生命周期是怎样的</strong></p>
+<p>发送命令-&gt;命令排队-&gt;命令执行-&gt;返回结果</p>
+<p><strong>2. 如何统计执行比较慢的命令</strong></p>
+<p>通过参数来设置慢查询阈值，执行时间超过这个阈值的命令就会被记录下来，使用<code>slowlog</code>命令就可以获取到慢查询日志。</p>
+<p><strong>3. 什么是pipeline机制</strong></p>
+<p>在redis中某些操作提供了批量操作的命令，但是许多操作是没有对应的批量操作的命令，所以在执行一批大量的命令时，总的执行包括真正的执行时间以及发送命令和接受响应的往返时间，往返时间取决于网络的状况，为了降低网络时延的影响，pipeline提供了将一组命令组合在一起发送给服务端的能力，这样就只有一次往返时间，提高了命令执行的效率。</p>
+<p><strong>4. redis对事务的支持情况</strong></p>
+<p>redis只支持简单的事务，这种事务不具备完整的ACID特性，使用事务的时候执行<code>multi</code>开启事务，后面的命令都在同一个事务中，使用<code>exec</code>来提交事务或者使用<code>exec</code>命令来取消事务，如果事务中的操作中有命令语法错误了整个事务将无法执行，但是redis的事务是不支付撤销的，在某些场景下可以使用类似乐观锁的机制来确保事务中的key没有被其他客户端修改过。</p>
+<p><strong>5. Lua语言在Redis中扮演的角色</strong></p>
+<p>Lua语言是一门由C语言实现的脚本语言，在Redis可以通过lua语言实现自定义的命令。</p>
+<p><strong>6. 介绍一下Redis的Bitmaps</strong></p>
+<p>bitmaps是一种数据结构，叫做位图，他的基本单位是二进制位，每个位只能取0或者1。在Redis中为bitmaps提供了许多位操作的功能，并且bitmap本身在redis中不是一种独立的数据结构，他的底层是字符串，因为bitmaps的基本单元是二进制位，所以数据结构占用的空间很小，适合那些只需要统计两种状态且要求空间很少的应用，比如说统计一亿用户中每天的活跃用户。</p>
+<p><strong>7. 介绍一下HyperLogLog</strong></p>
+<p>HyperlogLog的底层是字符串类型，通过HyperLogLog可以利用极小的内存空间完成独立总数的统计，但是统计值不是完全精确的，具有一定的误差，官方给出的失误率是0.81%。redis中实现的HyperLogLog，只需要12K内存，在标准误差0.81%的前提下，能够统计<code>2^64</code>个数据。但是，因为HyperLogLog只会根据输入元素来计算基数，而不会储存输入元素本身，所以HyperLogLog不能像集合那样，返回输入的各个元素。</p>
+<p><strong>8. Redis的发布订阅功能</strong></p>
+<p>Redis提供了基于“发布订阅”模式的消息机制，在这种模式下，消息发布者和订阅者不直接通信，发布者客户端向指定的频道发布消息，订阅该冰岛的每个客户端都可以收到该消息。</p>
+<ul>
+<li><p>发布消息</p>
+<p><code>publish channel message</code></p>
+</li>
+<li><p>订阅消息</p>
+<p><code>subscribe channel [频道名称]</code></p>
+</li>
+<li><p>取消订阅</p>
+<p><code>unsubscribe [频道名称]</code></p>
+</li>
+</ul>
+<p>Redis的消息队列系统比专业的消息队列系统还差很多，但是足够的简单</p>
+<p><strong>9. GEO</strong></p>
+<p>GEO的全称是地理信息(经纬度)定位，支持存储地理位置信息来实现如附近的人，摇一摇这类依赖于地理位置信息的功能。</p>
+<hr>
+<h4 id="4-客户端"><a href="#4-客户端" class="headerlink" title="4. 客户端"></a>4. 客户端</h4><p><strong>1. java中如何操作redis</strong></p>
+<p>jedis</p>
+<hr>
+<h4 id="5-持久化"><a href="#5-持久化" class="headerlink" title="5. 持久化"></a>5. 持久化</h4><p><a href="https://juejin.im/post/5d09a9ff51882577eb133aa9" target="_blank" rel="noopener">https://juejin.im/post/5d09a9ff51882577eb133aa9</a></p>
+<p><strong>1. 什么是持久化机制</strong></p>
+<p>redis的数据是存放在内存中，由于内存的特点是断电后数据丢失，而redis需要保证redis服务器重启后数据还在，所以需要一种机制，这种机制就是持久化机制，他可以把数据持久化到物理磁盘中人，然后重启后从磁盘中读取数据恢复内存中的数据。</p>
+<p><strong>2. Redis中有哪些持久化机制，默认是哪种</strong></p>
+<p>Redis支持两种持久化机制，RDB和AOF，默认开启的是RDB</p>
+<p><strong>3. 介绍一下RDB</strong></p>
+<p><code>RDB</code>是一种快照存储持久化方式，具体就是将<code>Redis</code>某一时刻的内存数据保存到硬盘的文件当中，默认保存的文件名为<code>dump.rdb</code>，而在<code>Redis</code>服务器启动时，会重新加载<code>dump.rdb</code>文件的数据到内存当中恢复数据。</p>
+<p><strong>4. 怎么开启RDB</strong></p>
+<p>可以使用命令<code>save</code>和<code>bgsave</code>,两者的区别是<code>save</code>命令会阻塞Redis服务器直到rdb完成，而<code>bgsave</code>会fork一个子进程来处理不会发生阻塞。也可以通过服务器配置文件来配置触发rdb的条件</p>
+<p><strong>5. 有哪些配置触发rdb条件的配置参数</strong></p>
+<pre><code class="java"># 900s内至少达到一条写命令
+save 900 1
+# 300s内至少到达10条写命令
+save 300 10
+# 60s内至少达到10000条写命令
+save 60 10000</code></pre>
+<p><strong>4. 生成rdb文件的过程</strong></p>
+<ol>
+<li>生成临时rdb文件，并写入数据</li>
+<li>完成数据写入，用临时文件替代正式rdb文件</li>
+<li>删除原来的rdb文件</li>
+</ol>
+<p><strong>5. rdb的优点</strong></p>
+<ol>
+<li>与AOF方式想比，通过rdb文件恢复数据比较快</li>
+<li>rdb文件非常紧凑，适合数据备份</li>
+<li>通过rdb进行数据备份，由于使用了子进程，所以对redis服务器的性能影响比较小</li>
+</ol>
+<p><strong>6. rdb的几个缺点</strong></p>
+<ul>
+<li><p>如果服务器宕机的话，采用<code>RDB</code>的方式会造成某个时段内数据的丢失，比如我们设置10分钟同步一次或5分钟达到1000次写入就同步一次，那么如果还没达到触发条件服务器就死机了，那么这个时间段的数据会丢失。</p>
+</li>
+<li><p>使用save命令会造成服务器阻塞，直接数据同步完成才能接收后续请求。</p>
+</li>
+<li><p>使用bgsave命令在forks子进程时，如果数据量太大，forks的过程也会发生阻塞，另外，forks子进程会耗费内存。</p>
+</li>
+</ul>
+<p><strong>7. 什么是AOF</strong></p>
+<p><code>AOF</code>持久化方式会记录客户端对服务器的每一次写操作命令，并将这些写操作以<code>Redis</code>协议追加保存到以后缀为<code>aof</code>文件末尾，在Redis服务器重启时，会加载并运行<code>aof</code>文件的命令，以达到恢复数据的目的。</p>
+<p><strong>8. 如何开启AOF持久化方式</strong></p>
+<p>Redis默认不开启AOF持久化方式，我们可以在配置文件中开启并进行更加详细的配置，如下面的redis.conf文件</p>
+<pre><code class="properties"># 开启aof机制
+appendonly yes
+
+# aof文件名
+appendfilename &quot;appendonly.aof&quot;
+
+# 写入策略,always表示每个写操作都保存到aof文件中,也可以是everysec或no
+appendfsync always
+
+# 默认不重写aof文件
+no-appendfsync-on-rewrite no
+
+# 保存目录
+dir ~/redis/</code></pre>
+<p><strong>9. 有哪些AOF的写入策略</strong></p>
+<p>通过<code>appendfsync</code>来配置，可以取三个值</p>
+<ul>
+<li><p>always</p>
+<p>客户端的每一个写操作都保存到<code>aof</code>文件当，这种策略很安全，但是每个写请注都有IO操作，所以也很慢。</p>
+</li>
+<li><p>everysec</p>
+<p><code>appendfsync</code>的默认写入策略，每秒写入一次<code>aof</code>文件，因此，最多可能会丢失1s的数据。</p>
+</li>
+<li><p>no</p>
+<p><code>Redis</code>服务器不负责写入<code>aof</code>，而是交由操作系统来处理什么时候写入<code>aof</code>文件。更快，但也是最不安全的选择，不推荐使用。</p>
+</li>
+</ul>
+<p><strong>10.AOF文件太大了这么办</strong></p>
+<p>可以进行AOF重写，通过重写在aof文件中只保存命令的最小集</p>
+<p><strong>11. 重写的作用是什么</strong></p>
+<p>aof不进行重写的话会有很多冗余的命令，这会使得aof越来越大，加载aof文件进行恢复时会很慢，重写aof文件的目的就是加快恢复的速度。</p>
+<p><strong>12. 有哪些重写方式</strong></p>
+<p>第一章是每次同步aof内容时就会发生重写，另一种是只要客户端向服务端发送bgrewriteaof命令的时候才会发生重写。</p>
+<p><strong>13. AOF文件损坏了怎么办</strong></p>
+<p>在写入aof日志文件时，如果Redis服务器宕机，则aof日志文件文件会出格式错误，在重启Redis服务器时，Redis服务器会拒绝载入这个aof文件，可以通过以下步骤修复aof并恢复数据。</p>
+<ol>
+<li>备份现在aof文件，以防万一。</li>
+<li>使用redis-check-aof命令修复aof文件，该命令格式<code>redis-check-aof -fix file.aof</code></li>
+</ol>
+<p><strong>14. AOF的优点</strong></p>
+<p>AOF只是追加日志文件，因此对服务器性能影响较小，速度比RDB要快，消耗的内存较少。</p>
+<p><strong>15. AOF的缺点</strong></p>
+<ol>
+<li>AOF方式生成的日志文件太大，即使通过AFO重写，文件体积仍然很大。</li>
+<li>恢复数据的速度比RDB慢。</li>
+</ol>
+<p><strong>16. AOF和RDB的对比</strong></p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>RDB</th>
+<th>AOF</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>启动优先级</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>体积</td>
+<td>小</td>
+<td>大</td>
+</tr>
+<tr>
+<td>恢复速度</td>
+<td>快</td>
+<td>慢</td>
+</tr>
+<tr>
+<td>数据安全性</td>
+<td>会丢数据</td>
+<td>由策略来决定</td>
+</tr>
+<tr>
+<td>轻重</td>
+<td>重</td>
+<td>轻</td>
+</tr>
+</tbody></table>
+<p><strong>17. rdb和aof同时开启的情况下，先使用哪种机制</strong></p>
+<p>当RDB与AOF两种方式都开启时，Redis会优先使用AOF日志来恢复数据，因为AOF保存的文件比RDB文件更完整。</p>
+<hr>
+<h4 id="6-复制"><a href="#6-复制" class="headerlink" title="6. 复制"></a>6. 复制</h4><p><strong>1. redis复制功能的作用</strong></p>
+<p>如果使用一台redis服务器来保存数据，当这个服务器不可用的时候，整个服务就会不可用，为了解决这个问题，可以通过提供相同数据的多个副本，这样当一个节点不可用，整个服务并不受影响，后续可以将不可用的服务器恢复。</p>
+<p><strong>2. 如何建立复制</strong></p>
+<p>参与复制的结点可以分为主节点和从节点，默认情况下redis都是主节点，并且每个从节点只能有一个主节点，一个主节点可以有多个从节点，复制的数据是单向的，只能由主节点复制到从节点，配置的方式有三种</p>
+<ul>
+<li>在配置文件中加入slaveof 主节点host，主节点port</li>
+<li>在redis服务器启动命令后加–slaveof 主节点host，主节点port</li>
+<li>redis服务器启动使用命令slaveof 主节点host，主节点port</li>
+</ul>
+<p><strong>3. 如何断开复制</strong></p>
+<p>在从节点中执行<code>slaveof no one</code>命令，之后这个从节点将晋升为主节点</p>
+<p><strong>4. 怎么保证主从复制的安全性</strong></p>
+<p>对于数据比较重要的节点，主节点会通过设置<code>requirepass</code>参数进行密码验证，这时所有的客户端访问必须使用<code>auth</code>命令实行校验。</p>
+<p><strong>5. 从节点可以进行写操作吗</strong></p>
+<p>默认情况下，从节点使用slave-read-only=yes配置为只读模式。由于复制只能从主节点到从节点，对于从节点的任何修改主节点都无法感知，修改从节点会造成主从数据不一致。因此建议线上不要修改从节点的只读模式。</p>
+<p><strong>6. 有哪些主从复制的拓扑结构，他们都有哪些特点</strong></p>
+<p><strong>一主一从结构</strong>是最简单的复制拓扑结构，用于主节点出现宕机时从节点提供故障转移支持。<strong>一主多从结构</strong>（又称为星形拓扑结构）使得应用端可以利用多个从节点实现读写分离（见图6-5）。对于读占比较大的场景，可以把读命令发送到从节点来分担主节点压力。<strong>树状主从结构</strong>（又称为树状拓扑结构）使得从节点不但可以复制主节点数据，同时可以作为其他从节点的主节点继续向下层复制。通过引入复制中间层，可以有效降低主节点负载和需要传送给从节点的数据量</p>
+<p><strong>7. 主从复制的原理，复制过程是怎么样的</strong></p>
+<p>执行slaveof命令，从节点先保存主节点的ip和端口信息，然后从节点会与主节点建立网络连接，连接成功之后从节点会发生ping请求进行首次通信，主节点会返回pong命令。如果主节点设置了权限认证则需要认证权限，认证完之后就可以进行数据集的同步，首次建立连接，主节点会把所有的数据全部发送个从节点，之后如果主节点有新的数据，会将命令持续复制给从节点，保证主从数据的一致性。</p>
+<p><strong>8. 如何实现数据同步</strong></p>
+<p>通过psync命令来完成主从数据同步，同步过程有两种，全量复制和部分复制</p>
+<p><strong>9. 什么是全量复制，什么是部分复制</strong></p>
+<p><strong>全量复制</strong>一般用于初次复制场景，它会把主节点全部数据一次性发送个从节点。他的缺点是当数据流比较大时，对主从节点和网络会造成很大的开销。<strong>部分复制</strong>是用来处理主从复制中因网络闪断等原因造成的数据丢失场景，当从节点再次连上主节点后，如果条件允许，主节点会补发丢失数据给从接待您，因为补发的数据远远小于全量数据，可以有效避免全量复制的过高开销。</p>
+<p><strong>10. psync命令需要哪些组件的支持</strong></p>
+<p>主从节点各自的复制偏移量，主从节点复制积压缓冲区，主节点运行id。</p>
+<ul>
+<li><p>复制偏移量</p>
+<p>参与复制的主从节点都会维护自身复制偏移量。主节点（master）在处理完写入命令后，会把命令的字节长度做累加记录，从节点（slave）每秒钟上报自身的复制偏移量给主节点，因此主节点也会保存从节点的复制偏移量，从节点在接收到主节点发送的命令后，也会累加记录自身的偏移量，通过对比主从节点的复制偏移量，可以判断主从节点数据是否一致。判断主从节点复制相差的数据量，根据这个差值判定当前复制的健康度。如果主从之间复制偏移量相差较大，则可能是网络延迟或命令阻塞等原因引起</p>
+</li>
+<li><p>复制积压缓冲区</p>
+<p>复制积压缓冲区是保存在主节点上的一个固定长度的队列，默认大小为1MB，当主节点有连接的从节点（slave）时被创建，这时主节点（master）响应写命令时，不但会把命令发送给从节点，还会写入复制积压缓冲区。由于缓冲区本质上是先进先出的定长队列，所以能实现保存最近已复制数据的功能，用于部分复制和复制命令丢失的数据补救</p>
+</li>
+<li><p>运行id</p>
+<p>每个Redis节点启动后都会动态分配一个<strong>40位的十六进制字符串</strong>作为运行ID。运行ID的主要作用是用来唯一识别Redis节点，比如从节点保存主节点的运行ID识别自己正在复制的是哪个主节点。</p>
+</li>
+</ul>
+<p><strong>11. fsync命令的流程</strong></p>
+<ul>
+<li>从节点（slave）发送psync命令给主节点，参数runId是当前从节点保存的主节点运行ID，如果没有则默认值为，参数offset是当前从节点保存的复制偏移量，如果是第一次参与复制则默认值为-1。</li>
+<li>主节点（master）根据psync参数和自身数据情况决定响应结果<ul>
+<li>如果回复+FULLRESYNC{runId}{offset}，那么从节点将触发全量复制流程</li>
+<li>如果回复+CONTINUE，从节点将触发部分复制流程。</li>
+<li>如果回复+ERR，说明主节点版本低于Redis2.8，无法识别psync命令</li>
+</ul>
+</li>
+</ul>
+<p><strong>12. 全量复制的流程</strong></p>
+<ul>
+<li>发送psync命令进行数据同步，由于是第一次进行复制，从节点没有复制偏移量和主节点的运行ID，所以发送psync-1。</li>
+<li>主节点根据psync-1解析出当前为全量复制，回复+FULLRESYNC响应。</li>
+<li>从节点接收主节点的响应数据保存运行ID和偏移量offset</li>
+<li>主节点执行bgsave保存RDB文件到本地（也可以使用无盘复制不用保存到本地）</li>
+<li>主节点发送RDB文件给从节点，从节点把接收的RDB文件保存在本地并直接作为从节点的数据文件</li>
+<li>对于从节点开始接收RDB快照到接收完成期间，主节点仍然响应读写命令，因此主节点会把这期间写命令数据保存在复制客户端缓冲区内，当从节点加载完RDB文件后，主节点再把缓冲区内的数据发送给从节点，保证主从之间数据一致性</li>
+<li>从节点接收完主节点传送来的全部数据后会清空自身旧数据</li>
+<li>从节点清空数据后开始加载RDB文件</li>
+<li>从节点成功加载完RDB后，如果当前节点开启了AOF持久化功能，它会立刻做bgrewriteaof操作</li>
+</ul>
+<p><strong>13. 部分复制的流程</strong></p>
+<ul>
+<li>当主从节点之间网络出现中断时，如果超过repl-timeout时间，主节点会认为从节点故障并中断复制连接</li>
+<li>主从连接中断期间主节点依然响应命令，但因复制连接中断命令无法发送给从节点，不过主节点内部存在的复制积压缓冲区，依然可以保存最近一段时间的写命令数据，默认最大缓存1MB</li>
+<li>当主从节点网络恢复后，从节点会再次连上主节点</li>
+<li>当主从连接恢复后，由于从节点之前保存了自身已复制的偏移量和主节点的运行ID。因此会把它们当作psync参数发送给主节点，要求进行部分复制操作</li>
+<li>主节点接到psync命令后首先核对参数runId是否与自身一致，如果一致，说明之前复制的是当前主节点；之后根据参数offset在自身复制积压缓冲区查找，如果偏移量之后的数据存在缓冲区中，则对从节点发送+CONTINUE响应，表示可以进行部分复制。</li>
+<li>主节点根据偏移量把复制积压缓冲区里的数据发送给从节点，保证主从复制进入正常状态</li>
+</ul>
+<p><strong>10. 主从机制的心跳机制</strong></p>
+<ul>
+<li>主从节点彼此都有心跳检测机制，各自模拟成对方的客户端进行通信</li>
+<li>主节点默认每隔10秒对从节点发送ping命令，判断从节点的存活性和连接状态。</li>
+<li>从节点在主线程中每隔1秒发送replconf ack{offset}命令，给主节点上报自身当前的复制偏移量</li>
+<li>主节点根据replconf命令判断从节点超时时间，体现在info replication统计中的lag信息中，lag表示与从节点最后一次通信延迟的秒数，正常延迟应该在0和1之间。如果超过repl-timeout配置的值（默认60秒），则判定从节点下线并断开复制客户端连接。即使主节点判定从节点下线后，如果从节点重新恢复，心跳检测会继续进行</li>
+</ul>
+<p><strong>11. 什么是异步复制</strong></p>
+<p>主节点不但负责数据读写，还负责把写命令同步给从节点。写命令的发送过程是异步完成，也就是说主节点自身处理完写命令后直接返回给客户端，并不等待从节点复制完成。</p>
+<p><strong>12. 什么是读写分离</strong></p>
+<p>对于读占比较高的场景，可以通过把一部分读流量分摊到从节点来减轻主节点压力，同时需要注意永远只对主节点执行写操作。</p>
+<p><strong>13. 读写分离要注意什么问题</strong></p>
+<p>·复制数据延迟、读到过期数据、从节点故障</p>
+<ul>
+<li><p>复制数据延迟</p>
+<p>Redis复制数据的延迟由于异步复制特性是无法避免的，延迟取决于网络带宽和命令阻塞情况，比如刚在主节点写入数据后立刻在从节点上读取可能获取不到。</p>
+</li>
+<li><p>读到过期数据</p>
+<p>当主节点存储大量设置超时的数据时，如缓存数据，Redis内部需要维护过期数据删除策略，删除策略主要有两种：惰性删除和定时删除。</p>
+<ul>
+<li><p>惰性删除</p>
+<p>主节点每次处理读取命令时，都会检查键是否超时，如果超时则执行del命令删除键对象，之后del命令也会异步发送给从节点，为了保证复制的一致性，从节点自身永远不会主动删除超时数据。</p>
+</li>
+<li><p>定时删除</p>
+<p>Redis主节点在内部定时任务会循环采样一定数量的键，当发现采样的键过期时执行del命令，之后再同步给从节点。</p>
+</li>
+</ul>
+</li>
+<li><p>从节点故障</p>
+<p>对于从节点的故障问题，需要在客户端维护可用从节点列表，当从节点故障时立刻切换到其他从节点或主节点上。</p>
+</li>
+</ul>
+<p><strong>14. 什么时候会发生全量复制</strong></p>
+<p>全量复制是一个非常消耗资源的操作，发生全量复制的时机有</p>
+<ul>
+<li>第一次建立复制</li>
+<li>节点运行ID不匹配</li>
+<li>复制积压缓冲区不足</li>
+</ul>
+<p><strong>15. 什么是复制风暴，如何规避复制风暴</strong></p>
+<p>复制风暴是指大量从节点对同一主节点或者对同一台机器的多个主节点短时间内发起全量复制的过程。复制风暴对发起复制的主节点或者机器造成大量开销，导致CPU、内存、带宽消耗。</p>
+<p>应该把主节点尽量分散在多台机器上，避免在单台机器上部署过多的主节点。当主节点所在机器故障后提供故障转移机制，避免机器恢复后进行密集的全量复制。</p>
+<hr>
+<h4 id="7-Redis的噩梦：阻塞"><a href="#7-Redis的噩梦：阻塞" class="headerlink" title="7. Redis的噩梦：阻塞"></a>7. Redis的噩梦：阻塞</h4><hr>
+<h4 id="8-理解内存"><a href="#8-理解内存" class="headerlink" title="8. 理解内存"></a>8. 理解内存</h4><hr>
+<h4 id="9-哨兵"><a href="#9-哨兵" class="headerlink" title="9. 哨兵"></a>9. 哨兵</h4><p><a href="https://juejin.im/post/5b7d226a6fb9a01a1e01ff64" target="_blank" rel="noopener">https://juejin.im/post/5b7d226a6fb9a01a1e01ff64</a></p>
+<p><strong>1. 什么是redis哨兵</strong></p>
+<p>Redis的主从复制模式下，一旦主节点由于故障不能提供服务，需要人工将从节点晋升为主节点，同时还要通知应用方更新主节点地址，对于很多应用场景这种故障处理的方式是无法接受的。当主节点出现故障时，Redis Sentinel能自动完成故障发现和故障转移，并通知应用方，从而实现真正的高可用。</p>
+<p><strong>2. redis主从复制带来的问题</strong></p>
+<p>Redis主从复制模式下，一旦主节点出现了故障不可达，需要人工干预进行故障转移，无论对于Redis的应用方还是运维方都带来了很大的不便。对于应用方来说无法及时感知到主节点的变化，必然会造成一定的写数据丢失和读数据错误，甚至可能造成应用方服务不可用。对于Redis的运维方来说，整个故障转移的过程是需要人工来介的，故障转移实时性和准确性上都无法得到保障。</p>
+<p><strong>3. redis哨兵方案</strong></p>
+<p>Redis Sentinel是一个分布式架构，其中包含若干个Sentinel节点和Redis数据节点，每个Sentinel节点会对数据节点和其余Sentinel节点进行监控，当它发现节点不可达时，会对节点做下线标识。如果被标识的是主节点，它还会和其他Sentinel节点进行“协商”，当大多数Sentinel节点都认为主节点不可达时，它们会选举出一个Sentinel节点来完成自动故障转移的工作，同时会将这个变化实时通知给Redis应用方。整个过程完全是自动的，不需要人工<br>来介入</p>
+<p><strong>4. redis哨兵如何监控节点的</strong></p>
+<p>Redis Sentinel通过三个定时监控任务完成对各个节点发现和监控</p>
+<ul>
+<li>每隔10秒，每个Sentinel节点会向主节点和从节点发送info命令获取最新的拓扑结构</li>
+<li>每隔2秒，每个Sentinel节点会向Redis数据节点的<strong>sentinel</strong>：hello频道上发送该Sentinel节点对于主节点的判断以及当前Sentinel节点的信息，同时每个Sentinel节点也会订阅该频道，来了解其他Sentinel节点以及它们对主节点的判断。</li>
+<li>每隔1秒，每个Sentinel节点会向主节点、从节点、其余Sentinel节点发送一条ping命令做一次心跳检测，来确认这些节点当前是否可达</li>
+</ul>
+<p><strong>5. 什么是主观下线</strong></p>
+<p>每个Sentinel节点会每隔1秒对主节点、从节点、其他Sentinel节点发送ping命令做心跳检测，当这些节点超过down-after-milliseconds没有进行有效回复，Sentinel节点就会对该节点做失败判定，这个行为叫做主观下线。</p>
+<p><strong>6. 什么是客观下线</strong></p>
+<p>当Sentinel主观下线的节点是主节点时，该Sentinel节点会通过sentinel ismaster-down-by-addr命令向其他Sentinel节点询问对主节点的判断，当超过<quorum>个数，Sentinel节点认为主节点确实有问题，这时该Sentinel节点会做出客观下线的决定，这样客观下线的含义是比较明显了，也就是大部分Sentinel节点都对主节点的下线做了同意的判定，那么这个判定就是客观的。</p>
+<p><strong>7. 如何进行领导的选举</strong></p>
+<p>假如Sentinel节点对于主节点已经做了客观下线，那么是不是就可以立即进行故障转移了？当然不是，实际上故障转移的工作只需要一个Sentinel节点来完成即可，所以Sentinel节点之间会做一个领导者选举的工作，选出一个Sentinel节点作为领导者进行故障转移的工作。</p>
+<ul>
+<li>每个在线的Sentinel节点都有资格成为领导者，当它确认主节点主观下线时候，会向其他Sentinel节点发送sentinel is-master-down-by-addr命令，要求将自己设置为领导者。</li>
+<li>收到命令的Sentinel节点，如果没有同意过其他Sentinel节点的sentinelis-master-down-by-addr命令，将同意该请求，否则拒绝。</li>
+<li>如果该Sentinel节点发现自己的票数已经大于等于max（quorum，num（sentinels）/2+1），那么它将成为领导者。</li>
+<li>如果此过程没有选举出领导者，将进入下一次选举。</li>
+</ul>
+<p><strong>8. 故障转移是如何实现的</strong></p>
+<ol>
+<li><p>在从节点列表中选出一个节点作为新的主节点，选择方法如下</p>
+<ul>
+<li>过滤：“不健康”（主观下线、断线）、5秒内没有回复过Sentinel节点ping响应、与主节点失联超过down-after-milliseconds*10秒。</li>
+<li>选择slave-priority（从节点优先级）最高的从节点列表，如果存在则返回，不存在则继续。</li>
+<li>选择复制偏移量最大的从节点（复制的最完整），如果存在则返回，不存在则继续。</li>
+<li>选择runid最小的从节点。</li>
+</ul>
+</li>
+<li><p>Sentinel领导者节点会对第一步选出来的从节点执行slaveof no one命令让其成为主节点</p>
+</li>
+<li><p>Sentinel领导者节点会向剩余的从节点发送命令，让它们成为新主节点的从节点</p>
+</li>
+<li><p>Sentinel节点集合会将原来的主节点更新为从节点，并保持着对其关注，当其恢复后命令它去复制新的主节点</p>
+</li>
+</ol>
+<hr>
+<h4 id="10-集群"><a href="#10-集群" class="headerlink" title="10. 集群"></a>10. 集群</h4><p><strong>1. Redis集群是如何决定数据存放在哪台主机中的</strong></p>
+<p>redis使用虚拟槽来进行分区的，首先规定槽的范围为0到16384，槽是集群内数据管理和迁移的基本单位，采用大范围槽的主要目的是为了方便树拆分和集群扩展。每个节点会负责一定数量的槽。所有的键通过哈希算法映射到0到16384整数槽中，计算公式为<code>slot=CRC16(key)&amp;16383</code></p>
+<p><strong>2. 虚拟槽的特点</strong></p>
+<ul>
+<li>解耦了数据与节点之间的关系，简化了节点扩容和收缩的难度</li>
+<li>节点自身维护槽的映射关系，不需要客户端或代理服务维护槽分区</li>
+<li>支持节点、槽、键之间的映射查询，用于数据路由、在线伸缩等场景</li>
+</ul>
+<p><strong>3. redis集群功能有什么限制</strong></p>
+<ul>
+<li>对key的批量操作支持有限</li>
+<li>key事务操作支持有</li>
+<li>key作为数据分区的最小粒度，因此不能将一个大的键值对象如hash、list等映射到不同的节点</li>
+<li>不支持多数据库空间</li>
+<li>复制结构只支持一层，从节点只能复制主节点，不支持嵌套树状复制结构。</li>
+</ul>
+<p><strong>4. 如何搭建集群</strong></p>
+<p>一种是手动方式，一种是通过ruby脚本来实现</p>
+<ul>
+<li>首先准备节点，节点的个数最少为6个，通过配置参数开启集群模式<ul>
+<li>节点启动成功后会检查是否存在集群配置文件，如果没有会自动创建一份。</li>
+<li>当集群内节点信息发生变化，如添加节点、节点下线、故障转移等。节点会自动保存集群状态到配置文件中。需要注意的是，Redis自动维护集群配置文件，不要手动修改，防止节点重启时产生集群信息错乱</li>
+<li>集群中的每一个节点使用一个40位长度的16进制字符串的节点id表示，这个id与运行id不同.节点ID在集群初始化时只创建一次，节点重启时会加载集群配置文件进行重用，而Redis的运行ID每次重启都会变化</li>
+</ul>
+</li>
+<li>通过节点握手让6个节点彼此建立联系从而组成一个集群<ul>
+<li>节点握手是指一批运行在集群模式下的节点通过Gossip协议彼此通信，达到感知对方的过程</li>
+<li>节点握手是集群彼此通信的第一步，由客户端发起命令：<code>cluster meet{ip}{port}</code></li>
+<li>我们只需要在集群内任意节点上执行cluster meet命令加入新节点，握手状态会通过消息在集群内传播，这样其他节点会自动发现新节点并发起握手流程。最后执行cluster nodes命令确认6个节点都彼此感知并组成集群</li>
+<li>节点建立握手之后集群还不能正常工作，这时集群处于下线状态，所有的数据读写都被禁止</li>
+</ul>
+</li>
+<li>Redis集群把所有的数据映射到16384个槽中<ul>
+<li>每个key会映射为一个固定的槽，只有当节点分配了槽，才能响应和这些槽关联的键命令</li>
+</ul>
+</li>
+<li>每个负责处理槽的节点应该具有从节点，保证当它出现故障时可以自动进行故障转移,使用cluster<br>replicate{nodeId}命令让一个节点成为从节点</li>
+</ul>
+<p><strong>5. 集群中节点通信的流程</strong></p>
+<p>Gossip协议工作原理就是节点彼此不断通信交换信息，一段时间后所有的节点都会知道集群完整的信息，这种方式类似流言传播。</p>
+<p><strong>6. 常用的Gossip消息有哪些</strong></p>
+<ul>
+<li><strong>meet消息</strong>：用于通知新节点加入。消息发送者通知接收者加入到当前集群，meet消息通信正常完成后，接收节点会加入到集群中并进行周期性的ping、pong消息交换</li>
+<li><strong>ping消息</strong>：集群内交换最频繁的消息，集群内每个节点每秒向多个其他节点发送ping消息，用于检测节点是否在线和交换彼此状态信息。ping消息发送封装了自身节点和部分其他节点的状态数据</li>
+<li><strong>pong消息</strong>：当接收到ping、meet消息时，作为响应消息回复给发送方确认消息正常通信。pong消息内部封装了自身状态数据。节点也可以向集群内广播自身的pong消息来通知整个集群对自身状态进行更新</li>
+<li><strong>fail消息</strong>：当节点判定集群内另一个节点下线时，会向集群内广播一个fail消息，其他节点接收到fail消息之后把对应节点更新为下线状态。</li>
+</ul>
+<p><strong>7. Gossip协议如何选择通信的节点</strong></p>
+<p>集群内每个节点维护定时任务默认每秒执行10次，每秒会随机选取5个节点找出最久没有通信的节点发送ping消息，用于保证Gossip信息交换的随机性。每100毫秒都会扫描本地节点列表，如果发现节点最近一次接受pong<br>消息的时间大于cluster_node_timeout/2，则立刻发送ping消息，防止该节点信息太长时间未更新。每次消息头的大小为2kb</p>
+<p><strong>8. 集群伸缩的原理</strong></p>
+<p>集群伸缩=槽和数据在节点之间的移动</p>
+<p><strong>9. 如何扩容集群</strong></p>
+<ul>
+<li><p>准备新节点</p>
+<p>需要提前准备好新节点并运行在集群模式下，新节点建议跟集群内的节点配置保持一致，便于管理统一</p>
+</li>
+<li><p>加入集群</p>
+<p>新节点依然采用cluster meet命令加入到现有集群中</p>
+</li>
+<li><p>迁移槽和数据</p>
+<p>槽是Redis集群管理数据的基本单位，首先需要为新节点制定槽的迁移计划，确定原有节点的哪些槽需要迁移到新节点。迁移计划需要确保每个节点负责相似数量的槽，从而保证各节点的数据均匀</p>
+</li>
+</ul>
+<p><strong>10. 如何收缩集群</strong></p>
+<ul>
+<li>首先需要确定下线节点是否有负责的槽，如果是，需要把槽迁移到其他节点，保证节点下线后整个集群槽节点映射的完整性</li>
+<li>当下线节点不再负责槽或者本身是从节点时，就可以通知集群内其他节点忘记下线节点，当所有的节点忘记该节点后可以正常关闭</li>
+</ul>
+<p><strong>11. 什么是集群的故障转移</strong></p>
+<p>Redis集群自身实现了高可用。高可用首先需要解决集群部分失败的场景：当集群内少量节点出现故障时通过自动故障转移保证集群可以正常对外提供服务。</p>
+<p><strong>12. 集群如何发现故障</strong></p>
+<p>当集群内某个节点出现问题时，需要通过一种健壮的方式保证识别出节点是否发生了故障。Redis集群内节点通过ping/pong消息实现节点通信，消息不但可以传播节点槽信息，还可以传播其他状态如：主从状态、节点故障<br>等。因此故障发现也是通过消息传播机制实现的。</p>
+<p><strong>13. 集群如何标记主观下线</strong></p>
+<p>集群中每个节点都会定期向其他节点发送ping消息，接收节点回复pong消息作为响应。如果在cluster-node-timeout时间内通信一直失败，则发送节点会认为接收节点存在故障，把接收节点标记为主观下线（pfail）状态</p>
+<p><strong>14. 集群如何标记客观下线</strong></p>
+<p>当某个节点判断另一个节点主观下线后，相应的节点状态会跟随消息在集群内传播。ping/pong消息的消息体会携带集群1/10的其他节点状态数据，当接受节点发现消息体中含有主观下线的节点状态时，会在本地找到故障节<br>点的ClusterNode结构，保存到下线报告链表中.</p>
+<p>通过Gossip消息传播，集群内节点不断收集到故障节点的下线报告。当半数以上持有槽的主节点都标记某个节点是主观下线时。</p>
+<p><strong>15. 为什么必须是负责槽的主节点参与故障发现决策</strong></p>
+<p>因为集群模式下只有处理槽的主节点才负责读写请求和集群槽等关键信息维护，而从节点只进行主节点数据和状态信息的复制。</p>
+<p><strong>16. 为什么半数以上处理槽的主节点</strong></p>
+<p>必须半数以上是为了应对网络分区等原因造成的集群分割情况，被分割的小集群因为无法完成从主观下线到<br>客观下线这一关键过程，从而防止小集群完成故障转移之后继续对外提供服务。</p>
+<p><strong>17. 如何进行故障转移</strong></p>
+<p>故障节点变为客观下线后，如果下线节点是持有槽的主节点则需要在它的从节点中选出一个替换它，从而保证集群的高可用.</p>
+<ul>
+<li><strong>资格检查</strong>：每个从节点都要检查最后与主节点断线时间，判断是否有资格替换故障的主节点。如果从节点与主节点断线时间超过cluster-node-time*cluster-slave-validity-factor，则当前从节点不具备故障转移资格。参数cluster-slavevalidity-factor用于从节点的有效因子，默认为10。</li>
+<li><strong>准备选举时间</strong>：当从节点符合故障转移资格后，更新触发故障选举的时间，只有到达该时间后才能执行后续流程</li>
+<li><strong>发起选举</strong>：当从节点定时任务检测到达故障选举时间（failover_auth_time）到达后，发起选举流程<ul>
+<li><strong>更新配置纪元</strong>：配置纪元是一个只增不减的整数，每个主节点自身维护一个配置纪标示当前主节点的版本，所有主节点的配置纪元都不相等，从节点会复制主节点的配置纪元。</li>
+</ul>
+</li>
+<li><strong>选举投票</strong></li>
+</ul>
+<hr>
+<hr>
+<h4 id="11-缓存设计"><a href="#11-缓存设计" class="headerlink" title="11. 缓存设计"></a>11. 缓存设计</h4><p><strong>1. 缓存带来了哪些收益</strong></p>
+<ul>
+<li><p>加速读写</p>
+<p>缓存通常是基于内存的，读写性能非常高。</p>
+</li>
+<li><p>降低后端负载</p>
+<p>帮助后端减少访问量和复杂计算（例如很复杂的SQL语句），在很大程度降低了后端的负载。</p>
+</li>
+</ul>
+<p><strong>2. 缓存带来了哪些成本</strong></p>
+<ul>
+<li>数据不一致性：缓存层和存储层的数据存在着一定时间窗口的不一致性，时间窗口跟更新策略有关。</li>
+<li>代码维护成本：加入缓存后，需要同时处理缓存层和存储层的逻辑，增大了开发者维护代码的成本。</li>
+<li>运维成本：以Redis Cluster为例，加入后无形中增加了运维成本。</li>
+</ul>
+<p><strong>3. 什么场景应该使用缓存</strong></p>
+<p>开销大的复杂计算：以MySQL为例子，一些复杂的操作或者计算（例如大量联表操作、一些分组计算），如果不加缓存，不但无法满足高并发量，同时也会给MySQL带来巨大的负担。</p>
+<p>加速请求响应：即使查询单条后端数据足够快（例如select*from table where id=），那么依然可以使用缓存，以Redis为例子，每秒可以完成数万次读写，并且提供的批量操作可以优化整个IO链的响应时间。</p>
+<p><strong>4. 什么是缓存穿透</strong></p>
+<p>缓存穿透是指查询一个根本不存在的数据，缓存层和存储层都不会命中，通常出于容错的考虑，如果从存储层查不到数据则不写入缓存层。缓存穿透将导致不存在的数据每次请求都要到存储层去查询，失去了缓存保护后端存储的意义。缓存穿透问题可能会使后端存储负载加大，由于很多后端存储不具备高并发性，甚至可能造成后端存储宕掉。</p>
+<p><strong>5. 为什么会发生缓存穿透</strong></p>
+<ul>
+<li><p>自身业务代码或者数据出现问题</p>
+</li>
+<li><p>一些恶意攻击、爬虫等造成大量空命中。下面我们来看一下如何解决缓存穿透问题</p>
+</li>
+</ul>
+<p><strong>6. 如何优化缓存穿透问题</strong></p>
+<ul>
+<li><p>当存储层不命中后，仍然将空对象保留到缓存层中，之后再访问这个数据将会从缓存中获取，这样就保护了后端数据源。</p>
+</li>
+<li><p>使用布隆过滤器进行拦截</p>
+</li>
+</ul>
+<p><strong>7. 什么是无底洞现象</strong></p>
+<p>添加新的节点，性能没有上升反而下降，这种现象称为无底洞现象</p>
+<p><strong>8. 无底洞现象是怎么产生的</strong></p>
+<p>键值数据库由于通常采用哈希函数将key映射到各个节点上，造成key的分布与业务无关，但是由于数据量和访问量的持续增长，造成需要添加大量节点做水平扩容，导致键值分布到更多的节点上，所以无论是Memcache还是Redis的分布式，批量操作通常需要从不同节点上获取，相比于单机批量操作只涉及一次网络操作，分布式批量操作会涉及多次网络时间。客户端一次批量操作会涉及多次网络操作，也就意味着批量操作会随着节点的增多，耗时会不断增大。</p>
+<p><strong>9. 无底洞现象怎么优化</strong></p>
+<p><strong>10. 什么是缓存雪崩</strong></p>
+<p>由于缓存层承载着大量请求，有效地保护了存储层，但是如果缓存层由于某些原因不能提供服务，于是所有的请求都会达到存储层，存储层的调用量会暴增，造成存储层也会级联宕机的情况。</p>
+<p><strong>11. 如何优化缓存雪崩</strong></p>
+<p><strong>12. 什么是缓存击穿</strong></p>
+<p><strong>13. 如何优化缓存击穿</strong></p>
+<hr>
+<p><em>参考：《Redis开发与运维》</em></p>
+<p><strong>（未完待续）</strong></p>
+
+      </div>
+      
+        <br>
+        <center>感谢你对我的支持！<br><fancybox><img style="width:200px; height:200px; border-radius:50%;" src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/reward.png"/></fancybox></center>
+      
+      
+        <br>
+        
+
+
+  <section class='meta' id="footer-meta">
+    <div class='new-meta-box'>
+      
+        
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-01-30T20:47:07+08:00">
+  <a class='notlink'>
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <p>updated at Jan 30, 2020</p>
+  </a>
+</div>
+
+        
+      
+        
+          
+  
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E6%80%BB%E7%BB%93/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>总结</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>数据库</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/redis/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>redis</p></a></div>
+
+
+        
+      
+        
+          
+  <div class="new-meta-item share -mob-share-list">
+  <div class="-mob-share-list share-body">
+    
+      
+        <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
+          
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2019/12/28/Redis%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=Redis基础知识总结 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qq.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
+          
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2019/12/28/Redis%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=Redis基础知识总结 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qzone.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
+          
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2019/12/28/Redis%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%80%BB%E7%BB%93/&title=Redis基础知识总结 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/weibo.png">
+          
+        </a>
+      
+    
+  </div>
+</div>
+
+
+
+        
+      
+    </div>
+  </section>
+
+
+      
+      
+          <div class="prev-next">
+              
+              
+                  <section class="next">
+                      <span class="art-item-right" aria-hidden="true">
+                          <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
+                          <h4>
+                              <a href="/2019/12/27/MySQL%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/" rel="prev" title="MySQL索引优化">
+                                  
+                                      MySQL索引优化
+                                  
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 数据库</a> <a class="tag" href="/tags/mysql/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> mysql</a> <a class="tag" href="/tags/%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 索引优化</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+          </div>
+      
+    </section>
+  </article>
+
+
+
+  <!-- 显示推荐文章和评论 -->
+
+
+
+  <article class="post white-box comments">
+    <section class="article typo">
+      <h4><i class="fas fa-comments fa-fw" aria-hidden="true"></i>&nbsp;Comments</h4>
+      
+      
+        <section id="comments">
+          <div id="lv-container" data-id="city" data-uid="MTAyMC80MDM2OS8xNjg5Ng==">
+            <noscript><div><i class='fas fa-exclamation-triangle'>&nbsp;Unable to load Livere, please make sure your network can access.</div></noscript>
+          </div>
+        </section>
+      
+      
+      
+    </section>
+  </article>
+
+
+
+
+
+
+<!-- 根据页面mathjax变量决定是否加载MathJax数学公式js -->
+
+
+
+  <script>
+    window.subData = {
+      title: 'Redis基础知识总结',
+      tools: true
+    }
+  </script>
+
+
+</div>
+<aside class='l_side'>
+  
+    
+    
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              
+  <section class='widget toc-wrapper'>
+    
+<header class='pure'>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
+  
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
+  
+</header>
+
+    <div class='content pure'>
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-初识Redis"><span class="toc-text">1. 初识Redis</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Redis的数据结构"><span class="toc-text">2. Redis的数据结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-小功能大用处"><span class="toc-text">3. 小功能大用处</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-客户端"><span class="toc-text">4. 客户端</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-持久化"><span class="toc-text">5. 持久化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-复制"><span class="toc-text">6. 复制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-Redis的噩梦：阻塞"><span class="toc-text">7. Redis的噩梦：阻塞</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-理解内存"><span class="toc-text">8. 理解内存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#9-哨兵"><span class="toc-text">9. 哨兵</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#10-集群"><span class="toc-text">10. 集群</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#11-缓存设计"><span class="toc-text">11. 缓存设计</span></a></li></ol>
+    </div>
+  </section>
+
+
+            
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+    
+
+  
+</aside>
+
+<footer id="footer" class="clearfix">
+  
+  
+    <div class="social-wrapper">
+      
+        
+          <a href="/atom.xml"
+            class="social fas fa-rss flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="mailto:807920489@qq.com"
+            class="social fas fa-envelope flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="https://github.com/mike-zeng"
+            class="social fab fa-github flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+    </div>
+  
+  <br>
+  <div><p>Blog content follows the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0) License</a></p>
+</div>
+  <div>
+    Use
+    <a href="https://xaoxuu.com/wiki/material-x/" target="_blank" class="codename">Material X</a>
+    as theme
+    
+      , 
+      total visits
+      <span id="busuanzi_value_site_pv"><i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i></span>
+      times
+    
+    . 
+  </div>
+</footer>
+<script>setLoadingBarProgress(80);</script>
+
+
+      <script>setLoadingBarProgress(60);</script>
+    </div>
+    <a class="s-top fas fa-arrow-up fa-fw" href='javascript:void(0)'></a>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+
+  <script>
+    var GOOGLE_CUSTOM_SEARCH_API_KEY = "";
+    var GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "";
+    var ALGOLIA_API_KEY = "";
+    var ALGOLIA_APP_ID = "";
+    var ALGOLIA_INDEX_NAME = "";
+    var AZURE_SERVICE_NAME = "";
+    var AZURE_INDEX_NAME = "";
+    var AZURE_QUERY_KEY = "";
+    var BAIDU_API_ID = "";
+    var SEARCH_SERVICE = "hexo" || "hexo";
+    var ROOT = "/"||"/";
+    if(!ROOT.endsWith('/'))ROOT += '/';
+  </script>
+
+<script src="//instant.page/1.2.2" type="module" integrity="sha384-2xV8M5griQmzyiY3CDqh1dn4z3llDVqZDqzjzcY+jCBCk/a5fXJmuZ/40JJAPeoU"></script>
+
+
+  <script async src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.5/dist/scrollreveal.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      const $reveal = $('.reveal');
+      if ($reveal.length === 0) return;
+      const sr = ScrollReveal({ distance: 0 });
+      sr.reveal('.reveal');
+    });
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      Waves.attach('.flat-btn', ['waves-button']);
+      Waves.attach('.float-btn', ['waves-button', 'waves-float']);
+      Waves.attach('.float-btn-light', ['waves-button', 'waves-float', 'waves-light']);
+      Waves.attach('.flat-box', ['waves-block']);
+      Waves.attach('.float-box', ['waves-block', 'waves-float']);
+      Waves.attach('.waves-image');
+      Waves.init();
+    });
+  </script>
+
+
+  <script async src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-busuanzi@2.3/js/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script type="text/javascript">
+      $(function(){
+        if ('.cover') {
+          $('.cover').backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        } else {
+          $.backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        }
+      });
+    </script>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+      if (typeof LivereTower === 'function') { return; }
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+      e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  </script>
+
+
+
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/app.js"></script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/search.js"></script>
+
+
+
+
+
+<!-- 复制 -->
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  let COPY_SUCCESS = "Copied";
+  let COPY_FAILURE = "Copy failed";
+  /*页面载入完成后，创建复制按钮*/
+  !function (e, t, a) {
+    /* code */
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '  <i class="fa fa-copy"></i><span>Copy</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+
+      clipboard.on('success', function(e) {
+        //您可以加入成功提示
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+        success_prompt(COPY_SUCCESS);
+        e.clearSelection();
+      });
+      clipboard.on('error', function(e) {
+        //您可以加入失败提示
+        console.error('Action:', e.action);
+        console.error('Trigger:', e.trigger);
+        fail_prompt(COPY_FAILURE);
+      });
+    }
+    initCopyCode();
+
+  }(window, document);
+
+  /**
+   * 弹出式提示框，默认1.5秒自动消失
+   * @param message 提示信息
+   * @param style 提示样式，有alert-success、alert-danger、alert-warning、alert-info
+   * @param time 消失时间
+   */
+  var prompt = function (message, style, time)
+  {
+      style = (style === undefined) ? 'alert-success' : style;
+      time = (time === undefined) ? 1500 : time*1000;
+      $('<div>')
+          .appendTo('body')
+          .addClass('alert ' + style)
+          .html(message)
+          .show()
+          .delay(time)
+          .fadeOut();
+  };
+
+  // 成功提示
+  var success_prompt = function(message, time)
+  {
+      prompt(message, 'alert-success', time);
+  };
+
+  // 失败提示
+  var fail_prompt = function(message, time)
+  {
+      prompt(message, 'alert-danger', time);
+  };
+
+  // 提醒
+  var warning_prompt = function(message, time)
+  {
+      prompt(message, 'alert-warning', time);
+  };
+
+  // 信息提示
+  var info_prompt = function(message, time)
+  {
+      prompt(message, 'alert-info', time);
+  };
+
+</script>
+
+
+<!-- fancybox -->
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+<script>
+  let LAZY_LOAD_IMAGE = "";
+  $(".article-entry").find("fancybox").find("img").each(function () {
+      var element = document.createElement("a");
+      $(element).attr("data-fancybox", "gallery");
+      $(element).attr("href", $(this).attr("src"));
+      /* 图片采用懒加载处理时,
+       * 一般图片标签内会有个属性名来存放图片的真实地址，比如 data-original,
+       * 那么此处将原本的属性名src替换为对应属性名data-original,
+       * 修改如下
+       */
+       if (LAZY_LOAD_IMAGE) {
+         $(element).attr("href", $(this).attr("data-original"));
+       }
+      $(this).wrap(element);
+  });
+</script>
+
+
+
+
+
+  <script>setLoadingBarProgress(100);</script>
+</body>
+</html>
