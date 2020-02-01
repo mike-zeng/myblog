@@ -1,3 +1,13 @@
+---
+sidebar: [grid, toc, tags] # 放置任何你想要显示的侧边栏部件
+categories: [java进阶, java虚拟机]
+date: 2019-12-19
+tags:
+- jvm
+- java
+- 总结
+---
+
 ### java虚拟机问题总结
 
 #### 一. 自动内存管理机制

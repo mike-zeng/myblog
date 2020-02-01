@@ -103,7 +103,11 @@ deploy:
   branch: run-page #部署分支
 
 # 评论
-livere_uid: MTAyMC80MDM2OS8xNjg5Ng==
+# livere_uid: MTAyMC80MDM2OS8xNjg5Ng==
+
+leancloud:
+  app_id: 03wbpQpd8dcMWzsThoJ6MPQA-gzGzoHsz
+  app_key: 8KLQBX5uu2Reuus89jvRTphH
 
 # 使用cdn
 use_cdn: true
