@@ -15,7 +15,7 @@
           
           <category> 计算机网络 </category>
           
-          <category> 运输层 </category>
+          <category> 传输层 </category>
           
       </categories>
       
@@ -26,9 +26,9 @@
             
             <tag> tcp </tag>
             
-            <tag> 运输层 </tag>
-            
             <tag> 拥塞控制 </tag>
+            
+            <tag> 传输层 </tag>
             
         </tags>
       
@@ -48,7 +48,7 @@
           
           <category> 计算机网络 </category>
           
-          <category> 运输层 </category>
+          <category> 传输层 </category>
           
       </categories>
       
@@ -60,6 +60,8 @@
             <tag> tcp </tag>
             
             <tag> 连接管理 </tag>
+            
+            <tag> 传输层 </tag>
             
         </tags>
       
