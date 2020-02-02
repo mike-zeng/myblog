@@ -4,6 +4,19 @@
   
     
     <entry>
+      <title>TCP抓包探究</title>
+      <link href="/2020/02/01/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/"/>
+      <url>/2020/02/01/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-连接超时问题"><a href="#1-连接超时问题" class="headerlink" title="1. 连接超时问题"></a>1. 连接超时问题</h5><p>首先使用<code>telnet</code>命令对一个不存在的ip或端口进行测试，同时使用抓包工具抓包。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201165627.png" alt=""></p><p>抓包数据</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201165935.png" alt=""></p><p>分析结果</p><p>可以看到时间的变化近似为1、2、4、8、16，即第一个报文发送后隔了1秒发送，然后隔了2秒发送，然后隔了4秒发送，最后隔了8秒发送。可以看出TCP连接建立超时后采用指数退避的方式重新发送连接请求报文。</p><h5 id="2-TCP的连接释放"><a href="#2-TCP的连接释放" class="headerlink" title="2. TCP的连接释放"></a>2. TCP的连接释放</h5><p>理论告诉我们TCP的连接释放需要经过三次握手和四次挥手，我们基于这个理论进行探究，看是否可以使用抓包工具抓到七个这样的报文。</p><p>三次握手：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201170702.png" alt=""></p><p>四次挥手：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image20200201170858.png" alt=""></p><p>其中第1,2,3,6这几个报文是四次挥手报文</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>TCP超时重传</title>
       <link href="/2019/12/31/TCP%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0/"/>
       <url>/2019/12/31/TCP%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0/</url>
@@ -93,6 +106,39 @@
             <tag> 连接管理 </tag>
             
             <tag> 传输层 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>TCP协议报文</title>
+      <link href="/2019/12/29/TCP%E5%8D%8F%E8%AE%AE%E6%8A%A5%E6%96%87/"/>
+      <url>/2019/12/29/TCP%E5%8D%8F%E8%AE%AE%E6%8A%A5%E6%96%87/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-协议报文"><a href="#1-协议报文" class="headerlink" title="1.协议报文"></a>1.协议报文</h5><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E5%8D%8F%E8%AE%AE%E6%8A%A5%E6%96%87/image-20200202101221.png" style="zoom:50%;" /><hr><h5 id="2-协议字段"><a href="#2-协议字段" class="headerlink" title="2. 协议字段"></a>2. 协议字段</h5><ul><li><p><strong>源端口、目的端口</strong></p><p>源端口、目的端口、源IP地址、目的IP地址组成的四元组唯一标识一个连接。其中源IP地址与目的IP地址在IP首部中标识。源端口与目的端口在TCP首部中标识。端口使用16位表示，范围为0到65535。端口分类如下：</p><ul><li><p>系统端口号<code>0-1023</code></p><p>这些端口指派给了TCP/IP最重要的一些应用程序</p></li><li><p>登记端口号<code>1024-49151</code></p><p>服务器端使用的端口号，这类端口号是为没有熟知端口号的应用程序使用</p></li><li><p>短暂端口号<code>49152-65535</code></p><p>客户端进程运行时动态选择的短暂端口号</p></li></ul></li><li><p><strong>序列号</strong></p><p>序列号字段标识了TCP发送端到TCP接收端的数据流的一个字节，该字节代表着包含该序列号的报文段的数据中的第一个字节。</p></li><li><p><strong>确认序号</strong></p><p>确认号用于指明在接收方已经顺序收到的最大字节。</p></li><li><p><strong>首部长度</strong></p><p>指明了头部的长度，共四位，表示的最大值为15，但是单位是4字节，也就是说TCP的首部最大为60字节，因为固定首部长度为20字节，因此选项可使用40字节。</p></li><li><p><strong>保留位</strong></p><p>一个六位，实际上新的实现只有四位，有两位有作用</p><ul><li><p>CWR</p><p>发送方降低它的发送速率</p></li><li><p>ECE</p><p>发送方接受到了一个更早的拥塞通告</p></li></ul></li><li><p><strong>标志位</strong></p><ul><li><p>URG</p><p>紧急选项，置位后紧急指针有效</p></li><li><p>ACK</p><p>表示这是一个ACK确认报文</p></li><li><p>PSH</p><p>接收方应该尽快将这个数据交给应用进程</p></li><li><p>PST</p><p>因为某些错误导致重置连接</p></li><li><p>SYN</p><p>初始化一个连接的同步序列号</p></li><li><p>FIN</p><p>表示这是一个释放连接的报文</p></li></ul></li><li><p><strong>窗口大小</strong></p><p>TCP流量控制由每个端点使用窗口大小字段来通告一个窗口大小来完成。这个窗口大小是字节数、由ACK号指定，窗口大小为16位限制了窗口大小为65535字节，但是可以通过窗口缩放选项对这个值进行缩放。</p></li><li><p><strong>校验和</strong></p><p>TCP接收端使用校验和来校验接受的数据是否出现了差错。</p></li><li><p><strong>紧急指针</strong></p><p>只有在URG位字段被设置时才有效。这个“指针”是一个必须要加到报文段的序列号字段上的正偏移，以产生紧急数据的最后一个字节的序列号。TCP的紧急机制是一种让发送方给另一端提供特殊标志数据的方法。</p></li><li><p><strong>选项</strong></p></li><li><p><strong>数据</strong></p><p>数据部分是可选的</p></li></ul><hr><h5 id="3-TCP常见选项"><a href="#3-TCP常见选项" class="headerlink" title="3. TCP常见选项"></a>3. TCP常见选项</h5><ul><li><p>最大段大小选项</p><p>最大段大小是指TCP协议所允许的从对方接收到的最大报文段，因此这也是通信对方在发送数据时能够使用的最大报文段。当建立一条TCP连接时，通信的每一方都要在SYN报文段的MSS选项中说明自己允许的最大段大小。最大段大小使用16位表示，默认数值为536字节。因为以太网的MTU为1500字节，为了使得TCP数据报向下传递不分片，减去20字节的ip首部和20字节的tcp首部，MSS一般去1460。</p></li><li><p>选择确认选项</p><p>选择确认选项让发送方能够了解接受方当前的空洞，从而更好的进行重传工作。SACK信息包含在SACK选项中，一个报文段中发送的最大SACK块数目为3。</p></li><li><p>窗口缩放选项</p><p>TCP首部使用16位的窗口大小来控制发送方窗口大小，但是16位最多能表示65535个字节，在一些高速的网络中显然不够。因此提供窗口缩放选项。实际的窗口数值扩大至原先的2<sup>s</sup>。其中s是比例因子，取值为0到14。所以使用窗口缩放选项窗口的最大值为(2<sup>16</sup>*x2<sup>14</sup>)，这个值接近1GB。</p></li><li><p>时间戳选项与防绕回序列号</p><p>时间戳选项（TSOPT）要求发送方在每一个报文段中添加<strong>2个4字节</strong>的时间戳数值。接受方将会在确认中反映这些数据，这样发送方就能够根据ACK估计TCP连接的往返时间。</p></li><li><p>用户超时选项</p><p>用户超时数值指明了TCP发送者在确认对方未能成功接受数据之前愿意等待ACK确认的时间，通常通过本地TCP协议配置，用户超时选项可以将用户超时数值告诉连接的对方，让对方可以采取某些操作。</p><p>用户超时数值的计算公式:</p><p><code>USER_TIMEOUT=min(U_LIMIT,max(ADV_UTO,REMOTE_UTO,L_LIMIT))</code></p><p>ADV_UTO表示本端设置的数值，REMOTE_UTO是远端告知的数值，U_LIMIT是上界，L_LIMIT是下界。</p></li><li><p>认证选项</p><p>TCP认证选项提供各种加密算法。</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机网络 </category>
+          
+          <category> 传输层 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 计算机网络 </tag>
+            
+            <tag> tcp </tag>
+            
+            <tag> 传输层 </tag>
+            
+            <tag> TCP协议报文 </tag>
             
         </tags>
       
