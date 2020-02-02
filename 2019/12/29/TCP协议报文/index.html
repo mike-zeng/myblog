@@ -362,7 +362,7 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>1.3k字</p>
+        <p>1.4k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
@@ -478,7 +478,16 @@
 <p>TCP首部使用16位的窗口大小来控制发送方窗口大小，但是16位最多能表示65535个字节，在一些高速的网络中显然不够。因此提供窗口缩放选项。实际的窗口数值扩大至原先的2<sup>s</sup>。其中s是比例因子，取值为0到14。所以使用窗口缩放选项窗口的最大值为(2<sup>16</sup>*x2<sup>14</sup>)，这个值接近1GB。</p>
 </li>
 <li><p>时间戳选项与防绕回序列号</p>
-<p>时间戳选项（TSOPT）要求发送方在每一个报文段中添加<strong>2个4字节</strong>的时间戳数值。接受方将会在确认中反映这些数据，这样发送方就能够根据ACK估计TCP连接的往返时间。</p>
+<p>时间戳选项（TSOPT）要求发送方在每一个报文段中添加<strong>2个4字节</strong>的时间戳数值。</p>
+<p>作用：</p>
+<ul>
+<li><p>利用时间戳计算RTT</p>
+<p>发送方将发送时的TCP时钟值写入时间戳选项，接收端收到后将这个值复制到ACK确认报文中返回，发送方收到ACK后，利用当前的TCP时钟值减去时间戳选项的值就可以得到RTT。</p>
+</li>
+<li><p>防绕回序列号</p>
+<p>TCP报文序列号只有32位，当超过后就会重新从1开始，在一个高速网络中，一个连接中可能存在相同序列号，使用时间戳选项可以判断相同序列号的报文的发送顺序。</p>
+</li>
+</ul>
 </li>
 <li><p>用户超时选项</p>
 <p>用户超时数值指明了TCP发送者在确认对方未能成功接受数据之前愿意等待ACK确认的时间，通常通过本地TCP协议配置，用户超时选项可以将用户超时数值告诉连接的对方，让对方可以采取某些操作。</p>
@@ -505,7 +514,7 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-02T15:24:09+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-02T16:01:21+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
     <p>updated at Feb 2, 2020</p>
