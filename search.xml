@@ -573,6 +573,37 @@
     </entry>
     
     
+    
+    <entry>
+      <title>网络层地址解析协议</title>
+      <link href="/2019/01/02/%E7%BD%91%E7%BB%9C%E5%B1%82%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE/"/>
+      <url>/2019/01/02/%E7%BD%91%E7%BB%9C%E5%B1%82%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-引言"><a href="#1-引言" class="headerlink" title="1. 引言"></a>1. 引言</h5><p>IP协议的设计目标是为跨域不同类型物理网络的分组交换提供互操作，这需要网络层软件使用的地址和底层网络硬件之间进行转换。</p><h5 id="2-MAC地址和IP地址"><a href="#2-MAC地址和IP地址" class="headerlink" title="2. MAC地址和IP地址"></a>2. MAC地址和IP地址</h5><p>网络接口硬件通常有一个硬件地址，称为MAC（介质访问控制）地址，由设备制造商定义并且永久的存储在设备中，这个地址长48位，是全球唯一的，其中前24位称为组织标识符分配给厂家，后24位称为扩展标识符，由厂家自行分配。因为MAC地址是全球唯一的并且不可变，所以可以唯一标识一台硬件设备。</p><p>网络层地址（IP地址）是由用户或网络管理员分配的，为设备分配的IP地址是可以变的，也就是说IP地址不能确定某台设备的身份。</p><p>通常使用IP地址进行两台主机的通信，那么问题在于怎么找到通信对方的IP地址到底对应哪台设备呢？这就需要将IP地址转换成MAC地址。</p><h5 id="3-ARP协议"><a href="#3-ARP协议" class="headerlink" title="3. ARP协议"></a>3. ARP协议</h5><p>地址解析是发现两个地址之间的映射关系的过程。对于使用IPV4的TCP/IP协议族，主要由ARP协议来实现，简单来说ARP解决的问题是已知某个IP地址，怎么知道这个IP地址对应局域网的哪一台主机。</p><ul><li><p>ARP协议</p><p>在主机<strong>ARP缓存</strong>中维护本局域网上的各主机的ip地址到硬件地址的映射表。当主机要向本局域网中的某台主机发送IP数据报时，首先会在缓存中查找，如果找不到，则会向该局域网中所有主机发送<strong>ARP请求</strong>，ARP请求中包含发送主机的ip地址，硬件地址，以及目的IP地址。局域网中的其他主机收到这个ARP请求后，会检查目的ip地址与自己的ip地址是不是相同，如果相同则会构造<strong>ARP响应</strong>分组返回给主机，响应分组包含了自己的物理地址。当发送方主机收到ARP响应后，就会把目的IP地址和对应的物理地址存在ARP缓存中，并设置一个过期时间。</p><p>假如目的主机不在这个网络上，就会找到路由器的地址，将这个数据报由路由器转发到其他的网络上。</p><p><strong>ARP协议是自动进行的，主机的用户对这种解析过程是不知道的</strong>。</p></li></ul><h5 id="4-ARP相关的攻击"><a href="#4-ARP相关的攻击" class="headerlink" title="4. ARP相关的攻击"></a>4. ARP相关的攻击</h5><ul><li><p>ARP欺骗</p><p>使用代理伪装成主机，对ARP请求进行应答。</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机网络 </category>
+          
+          <category> 网络层 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 计算机网络 </tag>
+            
+            <tag> 网络层 </tag>
+            
+            <tag> ARP协议 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
   
   
 </search>
