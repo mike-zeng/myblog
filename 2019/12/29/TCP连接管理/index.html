@@ -362,14 +362,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>1.4k字</p>
+        <p>2.2k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>5分</p>
+        <p>7分</p>
       </a>
     </div>
   
@@ -391,7 +391,7 @@
 
     <section class="article typo">
       <div class="article-entry" itemprop="articleBody">
-        <h5 id="1-TCP三次挥手"><a href="#1-TCP三次挥手" class="headerlink" title="1. TCP三次挥手"></a>1. TCP三次挥手</h5><p>TCP是一种面向连接的单播协议，在发送数据之前，通信双方必须彼此建立一条连接。一个tcp连接由一个四元组构成（源ip地址，源端口号，目的ip地址，目的端口号）</p>
+        <h5 id="1-TCP三次握手"><a href="#1-TCP三次握手" class="headerlink" title="1. TCP三次握手"></a>1. TCP三次握手</h5><p>TCP是一种面向连接的单播协议，在发送数据之前，通信双方必须彼此建立一条连接。一个tcp连接由一个四元组构成（源ip地址，源端口号，目的ip地址，目的端口号）</p>
 <p><strong>三次握手流程</strong>：</p>
 <img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86/iamge-20200131221035.png" style="zoom:50%;" />
 
@@ -404,7 +404,7 @@
 </li>
 </ul>
 <hr>
-<h5 id="2-TCP四次握手"><a href="#2-TCP四次握手" class="headerlink" title="2. TCP四次握手"></a>2. TCP四次握手</h5><p>连接释放比连接建立更加复杂，涉及到的知识点也更多</p>
+<h5 id="2-TCP四次挥手"><a href="#2-TCP四次挥手" class="headerlink" title="2. TCP四次挥手"></a>2. TCP四次挥手</h5><p>连接释放比连接建立更加复杂，涉及到的知识点也更多</p>
 <p><strong>四次挥手过程：</strong></p>
 <img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86/image-20200131221721.png" style="zoom:50%;" />
 
@@ -488,6 +488,9 @@
 </ul>
 </li>
 </ul>
+<hr>
+<h5 id="4-TCP为什么要三次握手建立连接"><a href="#4-TCP为什么要三次握手建立连接" class="headerlink" title="4. TCP为什么要三次握手建立连接"></a>4. TCP为什么要三次握手建立连接</h5><p><strong>TCP是一种可靠的传输协议，既要实现数据的可靠传输又要兼顾效率，三次握手恰好可以满足这两方面的需求</strong>。如果是两次握手可能会出现这样的问题，客户端发送的一个连接请求报文可能在网络中延迟，直到客户端和服务端的连接已经释放后才到达服务端，服务端接受到这个连接请求报文后会进行确认，假如没有第三次握手，服务端就以为连接建立了，而客户端此时并没有发送建立连接的请求，所以不会管收到的确认报文，这种情况下客户端认为没有建立连接，服务端却认为建立了连接等待数据的传送会导致服务端资源的浪费。这种情况出现的问题是，TCP的一端无法确认自己收到的报文段是不是合法的。</p>
+<p>为了实现可靠传输，TCP使用序列号来标识每一个报文段，通信的双方首先要同步自己的初始序列号，初始序列号是随机产生的。只有TCP双方知道了对方的初始序列号，才能够判断接收的数据报文是不是本次连接的，所以<strong>TCP三次握手整个过程就是以尽可能小的代价同步双方的初始序列号</strong>。具体来说第一次握手的过程，发送方会选择一个随机的序列号作为自己的初始序列号发送给接收方，接收方收到后并不知道这个序列号是不是对方此次连接的初始序列号，于是会进行确认并且携带自己的初始序列号，发送方收到之后可以知道接受方的初始确认号，因为这是一个确认报文，所以还可以知道接收方已经收到了它的初始序列号，但是此时接收方还是不能够判断自己收到的初始确认号是不是本次连接的，于是发送方会发送第三次报文给接收方，接收方收到后就能够确定自己收到的初始序列号是本次连接的，这样经过三次握手通信双方都知道了各自的初始序列号，因为初始序列号是随机生成的，在有些操作系统的实现是每4微秒增加1，需要大概4小时的时间才会重复，这个时间远远大于报文段在网络中的最长寿命，因此每一个连接都有独一无二的初始序列号，知道了对方的初始序列号就能判断接收到的是不是一个合法的报文段，从而实现确认和重传等操作，另外初始报文的获取是随机的，黑客很难伪造一个报文段来干扰这次连接。</p>
 
       </div>
       
@@ -503,10 +506,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-01T11:22:20+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-03T14:02:24+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Feb 1, 2020</p>
+    <p>updated at Feb 3, 2020</p>
   </a>
 </div>
 
@@ -703,7 +706,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-TCP三次挥手"><span class="toc-text">1. TCP三次挥手</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-TCP四次握手"><span class="toc-text">2. TCP四次握手</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-TCP状态转换"><span class="toc-text">3. TCP状态转换</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-TCP三次握手"><span class="toc-text">1. TCP三次握手</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-TCP四次挥手"><span class="toc-text">2. TCP四次挥手</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-TCP状态转换"><span class="toc-text">3. TCP状态转换</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-TCP为什么要三次握手建立连接"><span class="toc-text">4. TCP为什么要三次握手建立连接</span></a></li></ol>
     </div>
   </section>
 
