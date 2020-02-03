@@ -362,14 +362,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>3.4k字</p>
+        <p>3.5k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>11分</p>
+        <p>12分</p>
       </a>
     </div>
   
@@ -407,7 +407,7 @@
 </li>
 </ul>
 <hr>
-<h5 id="2-TCP拥塞检查的一些经典算法"><a href="#2-TCP拥塞检查的一些经典算法" class="headerlink" title="2. TCP拥塞检查的一些经典算法"></a>2. TCP拥塞检查的一些经典算法</h5><ul>
+<h5 id="2-TCP拥塞控制的一些经典算法"><a href="#2-TCP拥塞控制的一些经典算法" class="headerlink" title="2. TCP拥塞控制的一些经典算法"></a>2. TCP拥塞控制的一些经典算法</h5><ul>
 <li><p><strong>慢启动</strong></p>
 <ul>
 <li><p>什么时候使用慢启动算法</p>
@@ -419,8 +419,8 @@
 <li><p>慢启动算法的流程</p>
 <ul>
 <li>以一定数目的数据段开始慢启动，称为初始窗口（Init Window,IW）。初始窗口的值设为一个SMSS（发送方的最大段大小），但在其他的RFC文档中可以设置较大的值，如果2倍SMSS或3倍SMSS或者4SMSS</li>
-<li>每当发送一个数据包并且收到了ACK，发送窗口会增加1SMSS，也就是经过一和传输轮次，窗口的大小会翻倍。</li>
-<li>发送窗口不能无限制增长下去，慢启动算法执行过程中有一个满启动阈值，cwnd达到这个阈值后就会进入拥塞避免算法</li>
+<li>每当发送一个数据包并且收到了ACK，发送窗口会增加1SMSS，也就是经过一个传输轮次，窗口的大小会翻倍。</li>
+<li>发送窗口不能无限制增长下去，慢启动算法执行过程中有一个慢启动阈值，cwnd达到这个阈值后就会进入拥塞避免算法</li>
 </ul>
 </li>
 </ul>
@@ -438,13 +438,13 @@
 <p>当发生超时或者快速重传，都会重新进入慢启动状态</p>
 </li>
 <li><p>Reno（标准TCP的基础）</p>
-<p>使用快速恢复机制：在恢复阶段，每收到一个ACK，cwnd就能增长1SMSS，相应地就意味着能发送一个新的数据包。</p>
+<p>使用快速恢复机制：在恢复阶段，每收到一个重复ACK，cwnd就能临时增长1SMSS，相应地就意味着收到一个ACK就能发送一个新的数据包，拥塞窗口在一段时间内会急速增长，知道接受到一个不重复的ACK，TCP结束恢复阶段，拥塞恢复到之前的状态。</p>
 </li>
 </ul>
 </li>
 <li><p><strong>标准TCP</strong></p>
 <ul>
-<li><p>TCP连接建立之初首先是慢启动阶段，慢启动阈值通常取一个较大值（至少我awnd）。当接收到一个好的ACK（表示新的数据传输成功），cwnd会进行相应的更新</p>
+<li><p>TCP连接建立之初首先是慢启动阶段，慢启动阈值通常取一个较大值。当接收到一个好的ACK（表示新的数据传输成功），cwnd会进行相应的更新</p>
 <ul>
 <li>cwnd+=SMSS(慢启动)（这个公式的意思时每收到一个ack，增加一个SMSS,与一次往返时延RTT增加一倍并不矛盾）</li>
 <li>cwnd+=SMSS*SMSS/cwnd(拥塞避免)</li>
@@ -555,8 +555,6 @@
 </li>
 </ul>
 <hr>
-<h5 id="11-与TCP拥塞控制相关的攻击"><a href="#11-与TCP拥塞控制相关的攻击" class="headerlink" title="11. 与TCP拥塞控制相关的攻击"></a>11. 与TCP拥塞控制相关的攻击</h5><p>不详细总结</p>
-<hr>
 <p>*参考：《TCP/IP协议详解 卷一：协议》Kevin R. Fall W.Richard Stevens</p>
 
       </div>
@@ -573,10 +571,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-01T11:22:02+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-03T14:17:37+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Feb 1, 2020</p>
+    <p>updated at Feb 3, 2020</p>
   </a>
 </div>
 
@@ -773,7 +771,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-TCP拥塞检测"><span class="toc-text">1. TCP拥塞检测</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-TCP拥塞检查的一些经典算法"><span class="toc-text">2. TCP拥塞检查的一些经典算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-对标准算法的改进"><span class="toc-text">3. 对标准算法的改进</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-伪RTO处理-Eifel响应算法"><span class="toc-text">4. 伪RTO处理 Eifel响应算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-共享拥塞状态信息"><span class="toc-text">5. 共享拥塞状态信息</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-TCP友好性"><span class="toc-text">6. TCP友好性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-高速环境下的TCP"><span class="toc-text">7. 高速环境下的TCP</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-基于延迟的拥塞控制算法"><span class="toc-text">8. 基于延迟的拥塞控制算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-缓冲区膨胀"><span class="toc-text">9. 缓冲区膨胀</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-积极队列管理和ECN"><span class="toc-text">10. 积极队列管理和ECN</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#11-与TCP拥塞控制相关的攻击"><span class="toc-text">11. 与TCP拥塞控制相关的攻击</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-TCP拥塞检测"><span class="toc-text">1. TCP拥塞检测</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-TCP拥塞控制的一些经典算法"><span class="toc-text">2. TCP拥塞控制的一些经典算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-对标准算法的改进"><span class="toc-text">3. 对标准算法的改进</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-伪RTO处理-Eifel响应算法"><span class="toc-text">4. 伪RTO处理 Eifel响应算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-共享拥塞状态信息"><span class="toc-text">5. 共享拥塞状态信息</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-TCP友好性"><span class="toc-text">6. TCP友好性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-高速环境下的TCP"><span class="toc-text">7. 高速环境下的TCP</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-基于延迟的拥塞控制算法"><span class="toc-text">8. 基于延迟的拥塞控制算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-缓冲区膨胀"><span class="toc-text">9. 缓冲区膨胀</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-积极队列管理和ECN"><span class="toc-text">10. 积极队列管理和ECN</span></a></li></ol>
     </div>
   </section>
 
