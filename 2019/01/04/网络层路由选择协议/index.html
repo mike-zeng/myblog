@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   
-  <title>网络层：IP地址分类 | Severin的博客</title>
+  <title>网络层：路由选择协议 | Severin的博客</title>
   
   
 
@@ -286,8 +286,8 @@
         
   
     <h1 class="title">
-      <a href="/2019/01/03/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/">
-        网络层：IP地址分类
+      <a href="/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/">
+        网络层：路由选择协议
       </a>
     </h1>
   
@@ -318,7 +318,7 @@
             <div class="new-meta-item date">
   <a class='notlink'>
     <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-    <p>2019-01-03</p>
+    <p>2019-01-04</p>
   </a>
 </div>
 
@@ -362,14 +362,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>1.1k字</p>
+        <p>2.7k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>4分</p>
+        <p>9分</p>
       </a>
     </div>
   
@@ -391,46 +391,188 @@
 
     <section class="article typo">
       <div class="article-entry" itemprop="articleBody">
-        <h5 id="1-IP地址"><a href="#1-IP地址" class="headerlink" title="1. IP地址"></a>1. IP地址</h5><p>IP地址是互联网中的主机在全球的唯一标识符，IPV4的IP地址为32位，由互联网名字和数字分配机构进行分配。</p>
+        <h5 id="1-IP数据报的转发"><a href="#1-IP数据报的转发" class="headerlink" title="1. IP数据报的转发"></a>1. IP数据报的转发</h5><p>网络通过路由器连接在一起，每个路由器维护了一个路由表，路由表的每一条路由主要是由目的网络地址和下一条地址组成。因此如果一个数据报到达一个路由器，首先会去查路由表，找到下一跳地址，然后转发，如果找不到就向默认路由转发。如果数据报的目的地址就是本网络，则可以直接交付。</p>
 <hr>
-<h5 id="2-分类的IP地址"><a href="#2-分类的IP地址" class="headerlink" title="2. 分类的IP地址"></a>2. 分类的IP地址</h5><p>将IP地址分成固定的几类，每一类IP地址都由网络号和主机号组成</p>
-<p><code>IP地址=网络号，主机号</code></p>
-<p>IP地址一共分成五类</p>
-<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/image-20200203194658.png" alt=""></p>
-<p>其中D类地址用于IP多播，E类地址保留。</p>
-<p><strong>为什么要把IP地址分成A类，B类，C类</strong></p>
-<p>各种网络的差距很大，有的网络中主机数量多，有的主机数量少，将IP地址分成A，B，C三类是为了满足不同用户的需求，某个单位申请IP地址时会获得一个网络号，然后IP地址自行分配。</p>
-<p><strong>A类、B类、C类地址最大可指派的网络数和主机数</strong></p>
+<h5 id="2-理想的路由算法"><a href="#2-理想的路由算法" class="headerlink" title="2. 理想的路由算法"></a>2. 理想的路由算法</h5><p>路由选择协议的核心是路由算法，理想的路由算法具有如下特点：</p>
 <ul>
-<li>A类地址的网络号占8位，其中第一位固定为0，<strong>可指派的网络数为2<sup>7</sup>-2</strong>。减2的原因是网络号全0不能使用，表示本网络，网络号为<strong>127</strong>(01111111)保留作为本地环回地址。主机号占24位，<strong>可指派的主机数为2<sup>24</sup>-2</strong>。减去2的目的是全0的主机号表示该IP地址是”本主机“所连接到的单个网络地址，全1表示网络中所有的地址。A类地址占整个IP地址的50%。</li>
-<li>B类地址的网络号占16位，前2位已经固定了，<strong>可指派的网络数为2<sup>14</sup>-1</strong>，网络号不能组成全0或全1(因为固定位为01)，但是<strong>128.0.0.0</strong>是不能指派的。主机号占16位，<strong>可以指派的主机数为2<sup>16</sup>-2</strong>。减2的原因是全0和全1的地址不能使用。B类地址占整个IP地址的25%。</li>
-<li>C类地址的网络号占24位，前3位已经固定了，<strong>可指派的网络数为2<sup>21</sup>-1</strong>。减1的原因是<strong>192.0.0.0</strong>不可分配。<strong>可指派的主机数为2<sup>8</sup>-2</strong>。全0个全1的地址不能使用。C类地址占整个IP地址的12.5%。</li>
+<li>算法必须是正确和完整的</li>
+<li>算法在计算上应该简单</li>
+<li>算法能够适应通信量和网络拓扑的变化</li>
+<li>算法应该具有稳定性</li>
+<li>算法是公平的</li>
+<li>算法应该是最佳的</li>
 </ul>
 <hr>
-<h5 id="3-划分子网"><a href="#3-划分子网" class="headerlink" title="3. 划分子网"></a>3. 划分子网</h5><p><strong>分类的IP地址存在的问题</strong></p>
-<p>两级IP地址的问题在于A类地址和B类地址所支持连接的主机数量相差太大，对于有些单位可能为了发展申请一个支持主机数量多的A类地址，但实际上又使用不完，从而导致<strong>IP地址的大量浪费</strong>。另外<strong>两级IP地址不够灵活</strong>，想要开头一个新网络，必须重新申请一个网络号。</p>
-<p><strong>划分子网</strong></p>
-<p>将物理网络划分为若干个子网，划分子网只能在网络内部发现，在网络外部只能看到一个统一的网络。此时IP地址的组成。</p>
-<p><code>IP地址=网络号，子网号，主机号</code></p>
-<p>划分子网只是将主机号继续划分，而不改变IP地址原来的网络号。</p>
-<p><strong>子网掩码</strong></p>
-<p>子网掩码用于判断IP地址属于哪个子网络，子网掩码是一个32位的序列，其前半部分是连续的1，后半部分是连续的0。并且网络号的长度和子网的长度之和为多少，子网掩码中连续的1的数量就为多少，计算时，使用子网掩码与IP地址进行与运算，就得到了IP地址所属的子网络。其中A类地址的默认子网掩码为255.0.0.0,B类地址的默认子网掩码为255.255.0.0,C类地址的默认子网掩码为255.255.255.0。</p>
-<hr>
-<h5 id="4-构造超网"><a href="#4-构造超网" class="headerlink" title="4. 构造超网"></a>4. 构造超网</h5><p>构造超网又称无分类编址CIDR。</p>
-<p><strong>CIDR解决的问题</strong></p>
-<p>划分子网在一定程度上缓解了互联网在发展过程中遇到的困难，但是1992年互联网面临三个问题：</p>
+<h5 id="3-分层次的路由选择协议"><a href="#3-分层次的路由选择协议" class="headerlink" title="3. 分层次的路由选择协议"></a>3. 分层次的路由选择协议</h5><p>路由算法分为<strong>静态路由选择策略</strong>与<strong>动态路由选择策略</strong>，静态路由选择策略需要手动配置，特点是简单开销小，但是不能及时适应网络状态的变化，适用于小规模网络。动态路由选择策略的特点是可以较好的适应网络状态的变化，但实现起来较为复杂，开销也比较大，适用于大规模网络。</p>
+<p>互联网中采用的路由选择协议有以下特点</p>
 <ul>
-<li>B类地址在1992年已分配一半</li>
-<li>互联网主干网上的路由表中的项目数急剧增长</li>
-<li>整个IPV4地址终将耗尽</li>
-</ul>
-<p>无分类编址方法可以解决前两个问题</p>
-<p><strong>CIDR的特点</strong></p>
-<ul>
-<li><p>CIDR消除了传统的A类，B类，C类地址以及划分子网的概念，IP地址的组成为：</p>
-<p><code>IP地址=网络前缀，主机号</code></p>
+<li><p>自适应</p>
+<p>动态路由选择，能够较好的适应网络状态的变化</p>
 </li>
-<li><p>CIDR把网络前缀都相同的连续IP地址组成一个CIDR地址块，比如IP地址128.14.35.7/20，前20位就是网络前缀</p>
+<li><p>分布式</p>
+<p>路由选择之间交换路由信息</p>
+</li>
+<li><p>分层次</p>
+<p>将整个互联网分成许多较小的自治系统AS</p>
+</li>
+</ul>
+<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/image-20200204132413.png"  />
+
+<hr>
+<h5 id="4-内部网关协议RIP"><a href="#4-内部网关协议RIP" class="headerlink" title="4. 内部网关协议RIP"></a>4. 内部网关协议RIP</h5><p><strong>RIP是一种分布式局域距离向量的路由选择协议</strong>，是互联网的标准协议，最大的优点是简单。</p>
+<p>RIP协议要求网络中每一个路由器都要维护从它自己到其他每一个目的网络的距离记录，距离的定义如下：</p>
+<ul>
+<li>路由器直接相连的网络距离定义为1，一个路由器到另一个非直接相连的路由器的距离为中间所经过的路由器数量加1。RIP协议中的距离也称跳数，当距离等于16时相当于不可达，RIP只适用于小型网络。</li>
+</ul>
+<p>RIP协议认为跳数小的路由是好路由而不考虑其他因素比如网络带宽，所以实现简单。</p>
+<p><strong>RIP协议的基本工作原理</strong></p>
+<ul>
+<li>启动了RIP的接口将发生RIP请求报文，收到RIP请求报文的路由器，如果启动了RIP，则会发生RIP响应报文</li>
+<li>RIP报文封装在UDP用户数据报中，发送和接收端口都是520</li>
+<li>封装有RIP报文的UDP用户数据报封装在IP数据报中，目的IP地址为<code>255.255.255</code></li>
+<li>RIP会启动一个更新定时器，超时时间为30s，也就是说每隔30秒发送一次RIP更新，实际上为了避免路由器同时发生RIP更新，超时时间会加上一个随机的偏移量，该偏移量在-5到+5之间选择。</li>
+<li>路由器的每个条目都有一个失效定时器，默认超时时间为180s，超时后，会将条目的距离变成PD，该条目不会被转发。</li>
+<li>路由器的每个条目都有一个清除定时器，默认超时时间为240s，超时后，会将该条目的清除。</li>
+</ul>
+<p><strong>RIP路由条目更新规则</strong></p>
+<ul>
+<li>若收到的某条路由条目在路由表中没有，则直接在路由表中添加，原因是发现了新网络</li>
+<li>若路由表中已有到达相同目的网络的路由表条目：<ul>
+<li>若来自相同的下一跳路由，则进行更新，因为这是到达目的网络且下一跳相同的最新路由信息。</li>
+<li>若来自不同的下一跳路由，则需要比较距离：<ul>
+<li>若新路由条目中的距离小于原路由条目中的距离，则进行更新，这是因为新路由更具优势。</li>
+<li>若新路由条目中的距离等于原路由条目中的距离，则添加新路由，以便等价负载均衡。</li>
+<li>若新路由条目中的距离大于原路由条目中的距离，则不更新，因为新路由劣势。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>RIP减少路由环路产生以及加快收敛速度的方法</strong></p>
+<ul>
+<li><p>水平分割</p>
+<p>从某接口学习来的路由信息不能再从该接口发送出去，避免两个路由间的路由环路问题。</p>
+</li>
+<li><p>带有毒化逆转的水平分割</p>
+<p>从某接口学习来的路由信息可以从该接口发送出去，但是需要将距离改为16。</p>
+</li>
+<li><p>触发更新</p>
+<p>只要路由条目被更新，则立刻将该路由条目发给邻居，而不必等更新定时器到时</p>
+</li>
+</ul>
+<p><strong>RIP不能完全避免路由环路产生</strong></p>
+<hr>
+<h5 id="5-内部网关协议OSPF"><a href="#5-内部网关协议OSPF" class="headerlink" title="5. 内部网关协议OSPF"></a>5. 内部网关协议OSPF</h5><p><strong>OSPF特点</strong></p>
+<ul>
+<li>开放最短路径优先OSPF<ul>
+<li>开发表明OSPF是公开发表的，不受任何一家厂商控制</li>
+<li>最短路径有限是因为使用了Dijkstra提出的最短路径算法</li>
+</ul>
+</li>
+<li>OSPF是基于链路状态的，而不像RIP基于距离向量</li>
+<li>OSPF采用SPF算法计算路由，理论上不会出现路由环路</li>
+<li>OSPF不限制网络规模，更新效率高，收敛速度快</li>
+<li>OSP分组使用IP数据报进行封装，协议号89，组播地址224.0.0.5和224.0.0.6</li>
+<li>OSPF的默认管理距离为110，可手动修改</li>
+</ul>
+<p><strong>链路状态</strong></p>
+<p>链路状态时指本路由器都和哪些路由相邻，以及相应链路的代价，代价用来表示费用，距离，时延，带宽等等，这些都由网络管理人员来决定。思科路由器计算代价的方法是计算100M带宽/链路带宽，小于1的用1表示大于1的舍去小数。</p>
+<p><strong>邻居关系的建立和维护</strong></p>
+<p>OSPF路由器之间通过交换问候(Hello)分组，建立和维护邻居关系。</p>
+<ul>
+<li>Hello分组发往组播地址224.0.0.5</li>
+<li>发送周期为10秒</li>
+<li>40秒未收到来自邻居路由器的Hello分组，则认为该邻居路由器不可达</li>
+</ul>
+<p><strong>链路状态通过LSA</strong></p>
+<p>每个路由器都会产生链路状态通过LSA，LSA中包含以下内容：</p>
+<ul>
+<li>直连网络的链路状态信息</li>
+<li>邻居路由器的链路状态信息</li>
+</ul>
+<p><strong>链路状态更新LSU</strong></p>
+<ul>
+<li>LSA被封装在链路状态更新分组LSU</li>
+<li>采用洪泛法发送LSU</li>
+</ul>
+<p><strong>链路状态数据库LSDB</strong></p>
+<ul>
+<li>每个路由器都有一个链路状态数据库LSDB，用于存储LSA</li>
+<li>通过各路由器洪泛发送封装有自己LSA的LSU分组，各路由器的LSDB最终将达到一致</li>
+</ul>
+<p><strong>有了LSDB，就可以基于LSDB进行SPF计算</strong></p>
+<p><strong>OSPF五种分组类型及其作用</strong></p>
+<ul>
+<li><p>周期性发送，建立和维护邻居关系</p>
+<ul>
+<li>问候分组Hello</li>
+</ul>
+</li>
+<li><p>LSDB同步</p>
+<ul>
+<li><p>数据库描述分组DBD</p>
+<p>向邻站给出自己的链路状态数据库中的所有链路状态项目的摘要信息</p>
+</li>
+<li><p>链路状态请求分组LSR</p>
+<p>向对方请求发送某些链路状态项目的详细信息</p>
+</li>
+<li><p>链路状态更新分组LSU</p>
+<p>用洪泛法对全网更新链路状态</p>
+</li>
+<li><p>链路状态确认分组LSA</p>
+<p>对链路更新分组的确认</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>多路访问网络中路由邻居关系的建立</strong></p>
+<ul>
+<li>选举指定的路由器DR与BDR</li>
+<li>所有的非DR/BDR只与DR/BDR建立连接关系</li>
+<li>非DR/BDR之间通过DR/BDR交换信息</li>
+<li>目的是减少邻居关系的数量</li>
+</ul>
+<p><strong>OSPF划分区域机制</strong></p>
+<p>使用OSPF的自治系统可以划分成多个区域，每个区域由区域描述符表示，这样做的目的是使得洪泛法只局限于当前区域，减少洪泛法发送的数据量。每个区域内部的路由器称为<strong>区域内路由器</strong>，为了使得区域与区域之间连通，每个区域会有一个<strong>区域边界路由器</strong>。</p>
+<hr>
+<h5 id="6-外部网关协议BGP"><a href="#6-外部网关协议BGP" class="headerlink" title="6. 外部网关协议BGP"></a>6. 外部网关协议BGP</h5><p><strong>不同自治系统为什么不能使用内部网关协议</strong></p>
+<ul>
+<li>互联网的规模太大，使得自治系统之间路由选择非常困难</li>
+<li>自治系统AS之间的路由选择必须考虑有关策略，如安全、经济、政治等。</li>
+</ul>
+<p><strong>BGP工作原理</strong></p>
+<ul>
+<li>在配置BGP时，每个自治系统选择至少一个路由器作为BGP发言人</li>
+<li>一个BGP发言人与其他AS的BGP发言人要交换路由信息就要先建立TCP连接（端口号为179</li>
+<li>BGP刚建立时，需要交换整个BGP路由表，但之后只需要交换更新的部分</li>
+</ul>
+<p><strong>BGP四种报文</strong></p>
+<ul>
+<li><p>OPEN报文</p>
+<p>用来与相邻的BGP发言人建立关系，使通信初始化</p>
+</li>
+<li><p>UPDATE报文</p>
+<p>用来通告某一路由信息，以及列出要撤销的多条路由</p>
+</li>
+<li><p>KEEPALIVE报文</p>
+<p>用来周期性证实邻站的连通性</p>
+</li>
+<li><p>NOTIFICATION报文</p>
+<p>用来发送检测到的差错</p>
+</li>
+</ul>
+<hr>
+<h5 id="7-路由器的构成"><a href="#7-路由器的构成" class="headerlink" title="7. 路由器的构成"></a>7. 路由器的构成</h5><p>路由器是一种具有多个输入端口和多个输出端口的专用计算机，其任务是转发分组。从路由器某个输入端口收到的分组，按照分组的目的地，把该分组从路由器的某个输出端口转发给下一个路由器。路由器的构成框图如下：</p>
+<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/image-20200204134442.png" style="zoom: 50%;" />
+
+<p>路由器可以分为两部分<strong>路由选择部分</strong>和<strong>分组转发部分</strong>。</p>
+<ul>
+<li>控制选择部分也叫做控制部分，核心是路由选择处理机，其任务是根据所选定的路由协议构造出路由表，同时不断更新和维护路由表。</li>
+<li>分组转发部分由三部分组成：输入端口，输出端口，交换结构<ul>
+<li>交换结构将分组从一个输入端口转移到某个输出端口</li>
+<li>输入端口从线路接收分组，并进行物理层处理，数据链路层处理，最后经过网络层处理得到IP数据报放到输入缓存中等待查表和转发</li>
+<li>输出端口将待转发的网络层数据报放到缓存中管理，经过网络层处理，数据链路层处理和物理层处理向线路中发送分组</li>
+</ul>
 </li>
 </ul>
 
@@ -448,7 +590,7 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-04T10:24:53+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-04T13:54:54+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
     <p>updated at Feb 4, 2020</p>
@@ -460,7 +602,7 @@
         
           
   
-  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>计算机网络</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>网络层</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/IP%E5%9C%B0%E5%9D%80/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>IP地址</p></a></div>
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>计算机网络</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>网络层</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>路由选择协议</p></a></div>
 
 
         
@@ -473,7 +615,7 @@
       
         <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
           
-          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2019/01/03/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/&title=网络层：IP地址分类 | Severin的博客&summary="
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/&title=网络层：路由选择协议 | Severin的博客&summary="
           
           >
           
@@ -485,7 +627,7 @@
       
         <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
           
-          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2019/01/03/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/&title=网络层：IP地址分类 | Severin的博客&summary="
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/&title=网络层：路由选择协议 | Severin的博客&summary="
           
           >
           
@@ -497,7 +639,7 @@
       
         <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
           
-          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2019/01/03/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/&title=网络层：IP地址分类 | Severin的博客&summary="
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/&title=网络层：路由选择协议 | Severin的博客&summary="
           
           >
           
@@ -525,16 +667,16 @@
                       <span class="art-item-left">
                           <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
                           <h4>
-                              <a href="/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/" rel="prev" title="网络层：路由选择协议">
+                              <a href="/2019/12/19/Spring%E5%8E%9F%E7%90%86%E6%80%BB%E7%BB%93/" rel="prev" title="Spring原理总结">
                                 
-                                    网络层：路由选择协议
+                                    Spring原理总结
                                 
                               </a>
                           </h4>
                           
                               
                               <h6 class="tags">
-                                  <a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 计算机网络</a> <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 网络层</a> <a class="tag" href="/tags/%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 路由选择协议</a>
+                                  <a class="tag" href="/tags/jvm/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> jvm</a> <a class="tag" href="/tags/java/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> java</a> <a class="tag" href="/tags/%E6%80%BB%E7%BB%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 总结</a>
                               </h6>
                           
                       </span>
@@ -545,16 +687,16 @@
                       <span class="art-item-right" aria-hidden="true">
                           <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
                           <h4>
-                              <a href="/2019/01/02/%E7%BD%91%E7%BB%9C%E5%B1%82%E5%9C%B0%E5%9D%80%E8%A7%A3%E6%9E%90%E5%8D%8F%E8%AE%AE/" rel="prev" title="网络层：地址解析协议">
+                              <a href="/2019/01/03/%E7%BD%91%E7%BB%9C%E5%B1%82IP%E5%9C%B0%E5%9D%80%E5%88%86%E7%B1%BB/" rel="prev" title="网络层：IP地址分类">
                                   
-                                      网络层：地址解析协议
+                                      网络层：IP地址分类
                                   
                               </a>
                           </h4>
                           
                               
                               <h6 class="tags">
-                                  <a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 计算机网络</a> <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 网络层</a> <a class="tag" href="/tags/ARP%E5%8D%8F%E8%AE%AE/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> ARP协议</a>
+                                  <a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 计算机网络</a> <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 网络层</a> <a class="tag" href="/tags/IP%E5%9C%B0%E5%9D%80/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> IP地址</a>
                               </h6>
                           
                       </span>
@@ -598,7 +740,7 @@
 
   <script>
     window.subData = {
-      title: '网络层：IP地址分类',
+      title: '网络层：路由选择协议',
       tools: true
     }
   </script>
@@ -648,7 +790,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-IP地址"><span class="toc-text">1. IP地址</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-分类的IP地址"><span class="toc-text">2. 分类的IP地址</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-划分子网"><span class="toc-text">3. 划分子网</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-构造超网"><span class="toc-text">4. 构造超网</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-IP数据报的转发"><span class="toc-text">1. IP数据报的转发</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-理想的路由算法"><span class="toc-text">2. 理想的路由算法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-分层次的路由选择协议"><span class="toc-text">3. 分层次的路由选择协议</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-内部网关协议RIP"><span class="toc-text">4. 内部网关协议RIP</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-内部网关协议OSPF"><span class="toc-text">5. 内部网关协议OSPF</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-外部网关协议BGP"><span class="toc-text">6. 外部网关协议BGP</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-路由器的构成"><span class="toc-text">7. 路由器的构成</span></a></li></ol>
     </div>
   </section>
 
