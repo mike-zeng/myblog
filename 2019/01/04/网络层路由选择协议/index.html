@@ -484,8 +484,8 @@
 <li>发送周期为10秒</li>
 <li>40秒未收到来自邻居路由器的Hello分组，则认为该邻居路由器不可达</li>
 </ul>
-<p><strong>链路状态通过LSA</strong></p>
-<p>每个路由器都会产生链路状态通过LSA，LSA中包含以下内容：</p>
+<p><strong>链路状态通告LSA</strong></p>
+<p>每个路由器都会产生链路状态通告LSA，LSA中包含以下内容：</p>
 <ul>
 <li>直连网络的链路状态信息</li>
 <li>邻居路由器的链路状态信息</li>
@@ -510,16 +510,16 @@
 </li>
 <li><p>LSDB同步</p>
 <ul>
-<li><p>数据库描述分组DBD</p>
+<li><p>数据库描述分组</p>
 <p>向邻站给出自己的链路状态数据库中的所有链路状态项目的摘要信息</p>
 </li>
-<li><p>链路状态请求分组LSR</p>
+<li><p>链路状态请求分组</p>
 <p>向对方请求发送某些链路状态项目的详细信息</p>
 </li>
-<li><p>链路状态更新分组LSU</p>
+<li><p>链路状态更新分组</p>
 <p>用洪泛法对全网更新链路状态</p>
 </li>
-<li><p>链路状态确认分组LSA</p>
+<li><p>链路状态确认分组</p>
 <p>对链路更新分组的确认</p>
 </li>
 </ul>
@@ -527,7 +527,7 @@
 </ul>
 <p><strong>多路访问网络中路由邻居关系的建立</strong></p>
 <ul>
-<li>选举指定的路由器DR与BDR</li>
+<li>选举指定的路由器DR与备用指定路由器BDR</li>
 <li>所有的非DR/BDR只与DR/BDR建立连接关系</li>
 <li>非DR/BDR之间通过DR/BDR交换信息</li>
 <li>目的是减少邻居关系的数量</li>
@@ -590,10 +590,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-04T13:54:54+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-05T22:08:24+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Feb 4, 2020</p>
+    <p>updated at Feb 5, 2020</p>
   </a>
 </div>
 
