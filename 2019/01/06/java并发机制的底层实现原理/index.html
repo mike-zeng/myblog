@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   
-  <title>我的朋友们 | Severin的博客</title>
+  <title>java并发机制的底层实现原理 | Severin的博客</title>
   
   
 
@@ -48,7 +48,7 @@
   
   
   <div class="cover-wrapper">
-    <cover class='cover links half'>
+    <cover class='cover post half'>
       
         
   <h1 class='title'>Severin</h1>
@@ -272,7 +272,9 @@
   <div class="l_body">
     <div class='body-wrapper'>
       <div class='l_main'>
-  <article id="links" class="post white-box article-type-links" itemscope itemprop="blogPost">
+  
+
+  <article id="post" class="post white-box article-type-post" itemscope itemprop="blogPost">
     
 
 
@@ -284,8 +286,8 @@
         
   
     <h1 class="title">
-      <a href="/friends/index.html">
-        我的朋友们
+      <a href="/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">
+        java并发机制的底层实现原理
       </a>
     </h1>
   
@@ -316,7 +318,7 @@
             <div class="new-meta-item date">
   <a class='notlink'>
     <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-    <p>2020-01-28</p>
+    <p>2019-01-06</p>
   </a>
 </div>
 
@@ -324,6 +326,14 @@
         
           
             
+  
+  <div class='new-meta-item category'>
+    <a href='/categories/java%E8%BF%9B%E9%98%B6/java%E5%B9%B6%E5%8F%91/' rel="nofollow">
+      <i class="fas fa-folder-open" aria-hidden="true"></i>
+      <p>java进阶&nbsp;/&nbsp;java并发</p>
+    </a>
+  </div>
+
 
           
         
@@ -352,14 +362,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>23字</p>
+        <p>2k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>1分</p>
+        <p>6分</p>
       </a>
     </div>
   
@@ -379,13 +389,234 @@
   </section>
 
 
-      <section class="article typo l_friends">
-        
-        <br><br>
-        <p>你可以在评论中留下你的博客名、头像链接和博客链接</p>
+    <section class="article typo">
+      <div class="article-entry" itemprop="articleBody">
+        <h5 id="1-volatitle"><a href="#1-volatitle" class="headerlink" title="1. volatitle"></a>1. volatitle</h5><p>volatile是轻量级的synchronized，他的作用有：</p>
+<ul>
+<li><p>保证共享变量的<strong>可见性</strong></p>
+<p>当一个线程修改一个共享变量时，另外一个线程能读到这个修改的值。</p>
+</li>
+<li><p><strong>禁止指令重排序</strong></p>
+</li>
+<li><p><strong>不保证原子性</strong></p>
+<p>与synchronized的一个区别是不保证原子性</p>
+</li>
+</ul>
+<p><strong>定义</strong></p>
+<p>Java编程语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排他锁单独获得这个变量。Java语言提供了volatile，在某些情况下比锁要更加方便。如果一个字段被声明volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。</p>
+<p><strong>实现原理</strong></p>
+<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E6%9C%AF%E8%AF%AD%E8%A1%A81.jpg" style="zoom: 67%;" />
 
-      </section>
+<ul>
+<li><p><strong>volatile是如何来保证可见性</strong></p>
+<p>有volatile变量修饰的共享变量进行写操作的时候会多出lock前缀的指令</p>
+<ul>
+<li>Lock前缀指令会引起处理器缓存回写到内存</li>
+<li>根据缓存一致性协议，一个处理器的缓存回写到内存会导致其他处理器的缓存无效</li>
+</ul>
+</li>
+<li><p><strong>volatitle是如何禁止指令重排序的</strong></p>
+<p>???</p>
+</li>
+</ul>
+<hr>
+<h5 id="2-synchronized"><a href="#2-synchronized" class="headerlink" title="2. synchronized"></a>2. synchronized</h5><p>在早期的java中synchronized是重量级锁，但是后来引入了偏向锁和轻量级锁使得synchronize的效率有所提高。</p>
+<p>synchronized锁的是对象：</p>
+<ul>
+<li>对于普通同步方法，锁是当前实例对象。</li>
+<li>对于静态同步方法，锁是当前类的Class对象</li>
+<li>对于同步方法块，锁是Synchonized括号里配置的对象</li>
+</ul>
+<p>当一个线程试图访问同步代码块时，它首先必须得到锁，退出或抛出异常时必须释放锁</p>
+<p><strong>实现原理</strong></p>
+<p>同步代码块的实现是通过<code>monitorenter</code>和<code>monitorexit</code>指令实现的，<code>monitorenter</code>添加在同步代码块开始处，<code>monitorexit</code>添加在同步代码块结束和异常处。JVM要保证每个<code>monitorenter</code>必须有对应的<code>monitorexit</code>与之配对。任何对象都有一个<code>monitor</code>与之关联，当且一个<code>monitor</code>被持有后，它将处于锁定状态。线程执行到<code>monitorenter</code>指令时，将会尝试获取对象所对应的<code>monitor</code>的所有权，即尝试获得对象的锁。线程执行到<code>monitorexit</code>指令时，将会释放对象所对应的<code>monitor</code>的所有权，即释放对象的锁。synchronize是可重入的，monitor中有一个计数器，每当相同的线程获取锁后，计数器的值会加1，释放时减去1，只有当计时器为0，锁才真正被释放。</p>
+<p>对象头的MarkWord中记录了指向monitor的起始地址，同时monitor中有一个字段存放拥有该锁的线程的唯一标识，表示该锁被这个线程占用</p>
+<p><strong>偏向锁</strong></p>
+<p>大多数情况下，锁不仅不存在多线程竞争，而且总是由同一线程多次获得，<strong>为了让线程获得锁的代价更低而引入了偏向锁</strong>。当一个线程访问同步块并获取锁时，会在对象头和栈帧中的锁记录里存储锁偏向的线程ID，以后该线程在进入和退出同步块时不需要进行CAS操作来加锁和解锁，只需简单地测试一下对象头的Mark Word里是否存储着指向当前线程的偏向锁。如果测试成功，表示线程已经获得了锁。如果测试失败，则需要再测试一下Mark Word中偏向锁的标识是否设置成1（表示当前是偏向锁）：如果没有设置，则使用CAS竞争锁；如果设置了，则尝试使用CAS将对象头的偏向锁指向当前线程。</p>
+<ul>
+<li><p><strong>偏向锁的撤销</strong></p>
+<p>偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。</p>
+</li>
+<li><p><strong>偏向锁的关闭</strong></p>
+<p>偏向锁在Java 6和Java 7里是默认启用的，但是它在应用程序启动几秒钟之后才激活，如有必要可以使用JVM参数来关闭延迟：<code>-XX:BiasedLockingStartupDelay=0</code>。如果你确定应用程序里所有的锁通常情况下处于竞争状态，可以通过JVM参数关闭偏向锁：<code>-XX:-UseBiasedLocking=false</code>，那么程序默认会进入轻量级锁状态。</p>
+</li>
+</ul>
+<p><strong>轻量级锁</strong></p>
+<ul>
+<li><p>轻量级加锁</p>
+<p>线程在执行同步块之前，JVM会先在当前线程的栈桢中创建用于存储锁记录的空间，并将对象头中的Mark Word复制到锁记录中，官方称为Displaced Mark Word。然后线程尝试使用CAS将对象头中的Mark Word替换为指向锁记录的指针。如果成功，当前线程获得锁，如果失败，表示其他线程竞争锁，当前线程便尝试使用自旋来获取锁。</p>
+</li>
+<li><p>轻量级解锁</p>
+<p>轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。</p>
+</li>
+</ul>
+<p><strong>不同锁的对比</strong></p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E9%94%81%E7%9A%84%E5%AF%B9%E6%AF%94.jpg" alt=""></p>
+<hr>
+<h5 id="3-原子操作"><a href="#3-原子操作" class="headerlink" title="3. 原子操作"></a>3. 原子操作</h5><p>原子操作是不可被中断的一个或一系列操作</p>
+<p><strong>java中如何实现原子操作</strong></p>
+<ul>
+<li><p>使用循环CAS实现原子操作</p>
+<p>CAS有三个参数，内存的实际值，期望值和新的值，只有当实际值与期望值相同时才能成功将新的值赋给期望的值，如果失败则进行自旋。</p>
+<ul>
+<li><p>可能出现的问题</p>
+<ul>
+<li><p>ABA问题</p>
+<p>因为CAS需要在操作值的时候，检查值有没有发生变化，如果没有发生变化则更新，但是如果一个值原来是A，变成了B，又变成了A，那么使用CAS进行检查时会发现它的值没有发生变化，但是实际上却变化了。</p>
+<p>解决思路：在变量前面追加上版本号，每次变量更新的时候把版本号加1，JDK的Atomic包里提供了一个类AtomicStampedReference来解决ABA问题</p>
+</li>
+<li><p>循环时间长开销大</p>
+<p>自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销</p>
+</li>
+<li><p>只能保证一个共享变量的原子操作</p>
+<p>当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>使用锁机制实现原子操作</p>
+<p>锁机制保证了只有获得锁的线程才能够操作锁定的内存区域。JVM内部实现了很多种锁机制，有偏向锁、轻量级锁和互斥锁。有意思的是除了偏向锁，JVM实现锁的方式都用了循环CAS，即当一个线程想进入同步块的时候使用循环CAS的方式来获取锁，当它退出同步块的时候使用循环CAS释放锁。</p>
+</li>
+</ul>
+<hr>
+<h5 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h5><p>volatile、synchronized和原子操作的实现原理是实现java并发编程最基础工具</p>
+<hr>
+<p><strong>5. 参考</strong></p>
+<p><em>《java并发编程的艺术》方腾飞 魏鹏 程晓明</em></p>
+
+      </div>
+      
+        <br>
+        <center>感谢你对我的支持！<br><fancybox><img style="width:200px; height:200px; border-radius:50%;" src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/reward.png"/></fancybox></center>
+      
+      
+        <br>
+        
+
+
+  <section class='meta' id="footer-meta">
+    <div class='new-meta-box'>
+      
+        
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-06T20:45:57+08:00">
+  <a class='notlink'>
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <p>updated at Feb 6, 2020</p>
+  </a>
+</div>
+
+        
+      
+        
+          
+  
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/java/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>java</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E6%80%BB%E7%BB%93/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>总结</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/java%E5%B9%B6%E5%8F%91/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>java并发</p></a></div>
+
+
+        
+      
+        
+          
+  <div class="new-meta-item share -mob-share-list">
+  <div class="-mob-share-list share-body">
+    
+      
+        <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
+          
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/&title=java并发机制的底层实现原理 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qq.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
+          
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/&title=java并发机制的底层实现原理 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qzone.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
+          
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/&title=java并发机制的底层实现原理 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/weibo.png">
+          
+        </a>
+      
+    
+  </div>
+</div>
+
+
+
+        
+      
+    </div>
+  </section>
+
+
+      
+      
+          <div class="prev-next">
+              
+                  <section class="prev">
+                      <span class="art-item-left">
+                          <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
+                          <h4>
+                              <a href="/2019/12/19/Spring%E5%8E%9F%E7%90%86%E6%80%BB%E7%BB%93/" rel="prev" title="Spring原理总结">
+                                
+                                    Spring原理总结
+                                
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/jvm/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> jvm</a> <a class="tag" href="/tags/java/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> java</a> <a class="tag" href="/tags/%E6%80%BB%E7%BB%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 总结</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+              
+                  <section class="next">
+                      <span class="art-item-right" aria-hidden="true">
+                          <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
+                          <h4>
+                              <a href="/2019/01/04/%E7%BD%91%E7%BB%9C%E5%B1%82%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/" rel="prev" title="网络层：路由选择协议">
+                                  
+                                      网络层：路由选择协议
+                                  
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 计算机网络</a> <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 网络层</a> <a class="tag" href="/tags/%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 路由选择协议</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+          </div>
+      
+    </section>
   </article>
+
+
 
   <!-- 显示推荐文章和评论 -->
 
@@ -409,103 +640,32 @@
 
 
 
+
+
+
+<!-- 根据页面mathjax变量决定是否加载MathJax数学公式js -->
+
+
+
+  <script>
+    window.subData = {
+      title: 'java并发机制的底层实现原理',
+      tools: true
+    }
+  </script>
+
+
 </div>
 <aside class='l_side'>
   
     
     
       
-      
-        
-          
-          
-            
-              <section class='widget author'>
-  <div class='content pure'>
-    
-      <div class='avatar'>
-        <img class='avatar' src='https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/photo.jpg'/>
-      </div>
-    
-    
-      <div class='text'>
-        
-        
-        
-          <p><span id="jinrishici-sentence">Severin的博客</span></p>
-          <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
-        
-      </div>
-    
-    
-      <div class="social-wrapper">
-        
-          
-            <a href="/atom.xml"
-              class="social fas fa-rss flat-btn"
-              target="_blank"
-              rel="external nofollow noopener noreferrer">
-            </a>
-          
-        
-          
-            <a href="mailto:807920489@qq.com"
-              class="social fas fa-envelope flat-btn"
-              target="_blank"
-              rel="external nofollow noopener noreferrer">
-            </a>
-          
-        
-          
-            <a href="https://github.com/mike-zeng"
-              class="social fab fa-github flat-btn"
-              target="_blank"
-              rel="external nofollow noopener noreferrer">
-            </a>
-          
-        
-      </div>
-    
-  </div>
-</section>
-
-            
-          
         
           
           
         
           
-          
-        
-          
-          
-        
-          
-          
-        
-      
-        
-          
-          
-        
-          
-          
-            
-              <section class='widget plain'>
-  
-<header class='pure'>
-  <div><i class="fas fa-file fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;微信公众号</div>
-  
-</header>
-
-  <div class='content pure'>
-    <p><img src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/wechat.jpg" alt=""></p>
-
-  </div>
-</section>
-
-            
           
         
           
@@ -529,156 +689,22 @@
           
             
               
-
-            
-          
-        
-          
-          
-        
-          
-          
-        
-      
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-      
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-          
-          
-            
-              
-  <section class='widget category'>
+  <section class='widget toc-wrapper'>
     
 <header class='pure'>
-  <div><i class="fas fa-folder-open fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;Categories</div>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
   
-    <a class="rightBtn"
-    
-      rel="nofollow"
-    
-    
-    href="/categories/"
-    title="/categories/">
-    <i class="fas fa-expand-arrows-alt fa-fw"></i></a>
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
   
 </header>
 
     <div class='content pure'>
-      <ul class="entry">
-        
-          <li><a class="flat-box" title="/categories/java%E8%BF%9B%E9%98%B6/" href="/categories/java%E8%BF%9B%E9%98%B6/"><div class='name'>java进阶</div><div class='badge'>(4)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/java%E8%BF%9B%E9%98%B6/java%E5%B9%B6%E5%8F%91/" href="/categories/java%E8%BF%9B%E9%98%B6/java%E5%B9%B6%E5%8F%91/"><div class='name'>java并发</div><div class='badge'>(1)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/java%E8%BF%9B%E9%98%B6/java%E8%99%9A%E6%8B%9F%E6%9C%BA/" href="/categories/java%E8%BF%9B%E9%98%B6/java%E8%99%9A%E6%8B%9F%E6%9C%BA/"><div class='name'>java虚拟机</div><div class='badge'>(3)</div></a></li>
-        
-          <li><a class="flat-box" title="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/"><div class='name'>数据库</div><div class='badge'>(7)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/"><div class='name'>mysql</div><div class='badge'>(6)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/"><div class='name'>redis</div><div class='badge'>(1)</div></a></li>
-        
-          <li><a class="flat-box" title="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/" href="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/"><div class='name'>经典算法</div><div class='badge'>(2)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/%E6%8E%92%E5%BA%8F/" href="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/%E6%8E%92%E5%BA%8F/"><div class='name'>排序</div><div class='badge'>(1)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/%E6%9F%A5%E6%89%BE/" href="/categories/%E7%BB%8F%E5%85%B8%E7%AE%97%E6%B3%95/%E6%9F%A5%E6%89%BE/"><div class='name'>查找</div><div class='badge'>(1)</div></a></li>
-        
-          <li><a class="flat-box" title="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"><div class='name'>计算机网络</div><div class='badge'>(11)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E4%BC%A0%E8%BE%93%E5%B1%82/" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E4%BC%A0%E8%BE%93%E5%B1%82/"><div class='name'>传输层</div><div class='badge'>(5)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E5%BA%94%E7%94%A8%E5%B1%82/" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E5%BA%94%E7%94%A8%E5%B1%82/"><div class='name'>应用层</div><div class='badge'>(1)</div></a></li>
-        
-          <li><a class="flat-box child" title="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E5%B1%82/" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/%E7%BD%91%E7%BB%9C%E5%B1%82/"><div class='name'>网络层</div><div class='badge'>(5)</div></a></li>
-        
-      </ul>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-volatitle"><span class="toc-text">1. volatitle</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-synchronized"><span class="toc-text">2. synchronized</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-原子操作"><span class="toc-text">3. 原子操作</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-总结"><span class="toc-text">4. 总结</span></a></li></ol>
     </div>
   </section>
 
 
             
-          
-        
-          
-          
-        
-      
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-          
-          
-        
-          
-          
-            
-              
-  <section class='widget tagcloud'>
-    
-<header class='pure'>
-  <div><i class="fas fa-tags fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;Hot Tags</div>
-  
-    <a class="rightBtn"
-    
-      rel="nofollow"
-    
-    
-    href="/tags/"
-    title="/tags/">
-    <i class="fas fa-expand-arrows-alt fa-fw"></i></a>
-  
-</header>
-
-    <div class='content pure'>
-      <a href="/tags/ARP%E5%8D%8F%E8%AE%AE/" style="font-size: 14px; color: #999">ARP协议</a> <a href="/tags/HTTP%E5%8D%8F%E8%AE%AE/" style="font-size: 14px; color: #999">HTTP协议</a> <a href="/tags/ICMP/" style="font-size: 14px; color: #999">ICMP</a> <a href="/tags/IGMP/" style="font-size: 14px; color: #999">IGMP</a> <a href="/tags/IPv6/" style="font-size: 14px; color: #999">IPv6</a> <a href="/tags/IP%E5%9C%B0%E5%9D%80/" style="font-size: 14px; color: #999">IP地址</a> <a href="/tags/IP%E6%95%B0%E6%8D%AE%E6%8A%A5/" style="font-size: 14px; color: #999">IP数据报</a> <a href="/tags/InnoDB/" style="font-size: 16.86px; color: #868686">InnoDB</a> <a href="/tags/MySQL%E7%B4%A2%E5%BC%95/" style="font-size: 14px; color: #999">MySQL索引</a> <a href="/tags/NAT/" style="font-size: 14px; color: #999">NAT</a> <a href="/tags/TCP%E5%8D%8F%E8%AE%AE%E6%8A%A5%E6%96%87/" style="font-size: 14px; color: #999">TCP协议报文</a> <a href="/tags/VPN/" style="font-size: 14px; color: #999">VPN</a> <a href="/tags/java/" style="font-size: 18.29px; color: #7c7c7c">java</a> <a href="/tags/java%E5%B9%B6%E5%8F%91/" style="font-size: 14px; color: #999">java并发</a> <a href="/tags/jvm/" style="font-size: 16.86px; color: #868686">jvm</a> <a href="/tags/mysql/" style="font-size: 21.14px; color: #686868">mysql</a> <a href="/tags/redis/" style="font-size: 14px; color: #999">redis</a> <a href="/tags/tcp/" style="font-size: 18.29px; color: #7c7c7c">tcp</a> <a href="/tags/%E4%BC%A0%E8%BE%93%E5%B1%82/" style="font-size: 18.29px; color: #7c7c7c">传输层</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" style="font-size: 14px; color: #999">存储引擎</a> <a href="/tags/%E6%80%BB%E7%BB%93/" style="font-size: 19.71px; color: #727272">总结</a> <a href="/tags/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6/" style="font-size: 14px; color: #999">拥塞控制</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 14px; color: #999">排序</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 22.57px; color: #5f5f5f">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E9%94%81/" style="font-size: 14px; color: #999">数据库锁</a> <a href="/tags/%E6%9F%A5%E6%89%BE/" style="font-size: 14px; color: #999">查找</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 15.43px; color: #8f8f8f">算法</a> <a href="/tags/%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/" style="font-size: 14px; color: #999">索引优化</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E5%B1%82/" style="font-size: 19.71px; color: #727272">网络层</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 24px; color: #555">计算机网络</a> <a href="/tags/%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0/" style="font-size: 14px; color: #999">超时重传</a> <a href="/tags/%E8%B7%AF%E7%94%B1%E9%80%89%E6%8B%A9%E5%8D%8F%E8%AE%AE/" style="font-size: 14px; color: #999">路由选择协议</a> <a href="/tags/%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86/" style="font-size: 14px; color: #999">连接管理</a>
-    </div>
-  </section>
-
-
-            
-          
-        
-      
-        
-          
-          
-        
-          
-          
-        
-          
           
         
           
@@ -891,20 +917,6 @@
 
 
 
-
-  
-<script src="https://cdn.jsdelivr.net/gh/toddmotto/echo@1.7.3/src/echo.js"></script>
-
-  <script>
-    echo.init({
-      offset: 100,
-      throttle: 250,
-      unload: false,
-      callback: function (element, op) {
-        // console.log(element, 'has been', op + 'ed');
-      }
-    });
-  </script>
 
 
 <!-- 复制 -->

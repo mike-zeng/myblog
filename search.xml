@@ -4,19 +4,6 @@
   
     
     <entry>
-      <title>项目总结智能会议室管理系统</title>
-      <link href="/2020/02/04/%E9%A1%B9%E7%9B%AE%E6%80%BB%E7%BB%93%E6%99%BA%E8%83%BD%E4%BC%9A%E8%AE%AE%E5%AE%A4%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/"/>
-      <url>/2020/02/04/%E9%A1%B9%E7%9B%AE%E6%80%BB%E7%BB%93%E6%99%BA%E8%83%BD%E4%BC%9A%E8%AE%AE%E5%AE%A4%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F/</url>
-      
-        <content type="html"><![CDATA[<h5 id="1-项目背景"><a href="#1-项目背景" class="headerlink" title="1. 项目背景"></a>1. 项目背景</h5><p>智能会议室管理系统这个项目根据第十届中国大学生服务外包创新创业大赛的一个选题实现的，要求是使用出题方提供的人脸识别SDK，针对会议管理这一场景设计出一套包含硬件，移动端，服务端，前端程序的智能会议室管理系统。我们参赛团队一共有五个人，我主要负责后端开发以及担任队长的角色。</p><h5 id="2-业务描述"><a href="#2-业务描述" class="headerlink" title="2. 业务描述"></a>2. 业务描述</h5><p>这个项目包括一个运行谷歌Android Things物联网操作系统的树莓派实现的门禁系统，主要的功能是实现人脸识别并将人脸特征数据与后台数据对比判断是否开门，当参加会议室的人到达会议室时需要通过门禁系统进行刷脸签到开门。前端主要是给管理者使用的，功能是查看各个会议室的统一数据，比如说当前空闲的会议室有哪些，每个会议室分别在什么时间点有哪些会议，以及用户和部门管理。移动端主要功能是部门管理者或其他有开会权限的成员可以通过APP查看当前空闲的会议室并进行预订，并添加参会用户，添加时还能够查看某个用户是不是时间冲突，当预订某个会议后，后端会将通知推送给参加会议并且在线的的手机，如果用户不在线，我们设置了一个超时时间，如果超时时间内上线，用户会收到通知，否则会通过短信的方式推送给用户。另外在会议开始前半个小时也会进行一次通知。除此之外，还实现了一个简单是部门群聊系统，当会议开始前半个小时，用户可以进入群聊系统，组织会议者可以将一些会议相关的文件如PPT等资料分享到群聊中。对于不能按时参加会议的人，还提供线上请假功能，请假的数据会汇总到WEB网页端。</p><h5 id="3-使用到的技术"><a href="#3-使用到的技术" class="headerlink" title="3. 使用到的技术"></a>3. 使用到的技术</h5><ul><li>如何保证安全</li><li>群聊系统的实现</li></ul><h5 id="4-项目难点"><a href="#4-项目难点" class="headerlink" title="4. 项目难点"></a>4. 项目难点</h5>]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>TCP抓包探究</title>
       <link href="/2020/02/01/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/"/>
       <url>/2020/02/01/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/</url>
@@ -191,11 +178,11 @@
     
     
     <entry>
-      <title>MySQL索引优化</title>
+      <title>MySQL SQL优化</title>
       <link href="/2019/12/27/MySQL%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/"/>
       <url>/2019/12/27/MySQL%E7%B4%A2%E5%BC%95%E4%BC%98%E5%8C%96/</url>
       
-        <content type="html"><![CDATA[<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h5 id="1-建立索引的技巧"><a href="#1-建立索引的技巧" class="headerlink" title="1. 建立索引的技巧"></a>1. 建立索引的技巧</h5><ol><li>最左前缀匹配原则</li><li>=和in可以乱序，查询优化器会帮你优化成索引可以识别的形式</li><li>查询优化器会帮你优化成索引可以识别的形式</li><li>索引列不能参与计算，保持列“干净”</li><li>尽量的扩展索引，不要新建索引。比如表中已经有a的索引，现在要加(a,b)的索引，那么只需要修改原来的索引即可，当然要考虑原有数据和线上使用情况</li></ol>]]></content>
+        <content type="html"><![CDATA[<h4 id=""><a href="#" class="headerlink" title=""></a></h4><h5 id="1-建立索引的技巧"><a href="#1-建立索引的技巧" class="headerlink" title="1. 建立索引的技巧"></a>1. 建立索引的技巧</h5><ol><li>对于单键索引，尽量选择针对当前query过滤性更好的索引</li><li>在选择组合索引的时候，当前Query中过滤性最好的字段在索引字段顺序中，位置越靠前越好。(避免索引过滤性好的索引失效)</li><li>在选择组合索引的时候，尽量选择可以能够包含当前query中的where字句中更多字段的索引</li><li>尽可能通过分析统计信息和调整query的写法来达到选择合适索引的目的</li></ol><h5 id="2-索引规范"><a href="#2-索引规范" class="headerlink" title="2. 索引规范"></a>2. 索引规范</h5><ol><li>对复合索引于尽量使用全值匹配</li><li>遵循最左前缀法则</li><li>不要在索引列上进行任何操作，包括自动或者手动类型转换</li><li>存储引擎不能使用索引中范围条件右边的列</li><li>尽量使用覆盖索引</li><li>MySQL在使用不等于和is not null的时候会导致索引失效</li><li>like以通配符开头，MySQL索引会失效变成全表扫描</li><li>使用or会导致索引失效，可以使用union来代替</li></ol><h5 id="3-关联查询优化"><a href="#3-关联查询优化" class="headerlink" title="3. 关联查询优化"></a>3. 关联查询优化</h5><ol><li><p>保证被驱动表的join字段已经被索引</p></li><li><p>left join 时，选择小表作为驱动表，大表作为被驱动表</p></li><li><p>inner join 时，mysql会自己帮你把小结果集的表选为驱动表</p></li><li><p>子查询尽量不要放在被驱动表，有可能使用不到索引</p></li></ol><h5 id="4-子查询优化"><a href="#4-子查询优化" class="headerlink" title="4. 子查询优化"></a>4. 子查询优化</h5><ul><li><p>有索引的情况下 用  inner join 是最好的  其次是 in  ，exists最糟糕</p></li><li><p>无索引的情况下用 小表驱动大表 因为join 方式需要distinct ，没有索引distinct消耗性能较大。所以 exists性能最佳 in其次join性能最差？</p></li><li><p>无索引的情况下大表驱动小表in 和 exists 的性能应该是接近的  都比较糟糕  exists稍微好一点 超不过5%     但是inner join 优于使用了 join buffer 所以快很多如果left join 则最慢</p></li></ul>]]></content>
       
       
       <categories>
@@ -580,6 +567,37 @@
             <tag> java </tag>
             
             <tag> 总结 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>java并发机制的底层实现原理</title>
+      <link href="/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/"/>
+      <url>/2019/01/06/java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-volatitle"><a href="#1-volatitle" class="headerlink" title="1. volatitle"></a>1. volatitle</h5><p>volatile是轻量级的synchronized，他的作用有：</p><ul><li><p>保证共享变量的<strong>可见性</strong></p><p>当一个线程修改一个共享变量时，另外一个线程能读到这个修改的值。</p></li><li><p><strong>禁止指令重排序</strong></p></li><li><p><strong>不保证原子性</strong></p><p>与synchronized的一个区别是不保证原子性</p></li></ul><p><strong>定义</strong></p><p>Java编程语言允许线程访问共享变量，为了确保共享变量能被准确和一致地更新，线程应该确保通过排他锁单独获得这个变量。Java语言提供了volatile，在某些情况下比锁要更加方便。如果一个字段被声明volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。</p><p><strong>实现原理</strong></p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E6%9C%AF%E8%AF%AD%E8%A1%A81.jpg" style="zoom: 67%;" /><ul><li><p><strong>volatile是如何来保证可见性</strong></p><p>有volatile变量修饰的共享变量进行写操作的时候会多出lock前缀的指令</p><ul><li>Lock前缀指令会引起处理器缓存回写到内存</li><li>根据缓存一致性协议，一个处理器的缓存回写到内存会导致其他处理器的缓存无效</li></ul></li><li><p><strong>volatitle是如何禁止指令重排序的</strong></p><p>???</p></li></ul><hr><h5 id="2-synchronized"><a href="#2-synchronized" class="headerlink" title="2. synchronized"></a>2. synchronized</h5><p>在早期的java中synchronized是重量级锁，但是后来引入了偏向锁和轻量级锁使得synchronize的效率有所提高。</p><p>synchronized锁的是对象：</p><ul><li>对于普通同步方法，锁是当前实例对象。</li><li>对于静态同步方法，锁是当前类的Class对象</li><li>对于同步方法块，锁是Synchonized括号里配置的对象</li></ul><p>当一个线程试图访问同步代码块时，它首先必须得到锁，退出或抛出异常时必须释放锁</p><p><strong>实现原理</strong></p><p>同步代码块的实现是通过<code>monitorenter</code>和<code>monitorexit</code>指令实现的，<code>monitorenter</code>添加在同步代码块开始处，<code>monitorexit</code>添加在同步代码块结束和异常处。JVM要保证每个<code>monitorenter</code>必须有对应的<code>monitorexit</code>与之配对。任何对象都有一个<code>monitor</code>与之关联，当且一个<code>monitor</code>被持有后，它将处于锁定状态。线程执行到<code>monitorenter</code>指令时，将会尝试获取对象所对应的<code>monitor</code>的所有权，即尝试获得对象的锁。线程执行到<code>monitorexit</code>指令时，将会释放对象所对应的<code>monitor</code>的所有权，即释放对象的锁。synchronize是可重入的，monitor中有一个计数器，每当相同的线程获取锁后，计数器的值会加1，释放时减去1，只有当计时器为0，锁才真正被释放。</p><p>对象头的MarkWord中记录了指向monitor的起始地址，同时monitor中有一个字段存放拥有该锁的线程的唯一标识，表示该锁被这个线程占用</p><p><strong>偏向锁</strong></p><p>大多数情况下，锁不仅不存在多线程竞争，而且总是由同一线程多次获得，<strong>为了让线程获得锁的代价更低而引入了偏向锁</strong>。当一个线程访问同步块并获取锁时，会在对象头和栈帧中的锁记录里存储锁偏向的线程ID，以后该线程在进入和退出同步块时不需要进行CAS操作来加锁和解锁，只需简单地测试一下对象头的Mark Word里是否存储着指向当前线程的偏向锁。如果测试成功，表示线程已经获得了锁。如果测试失败，则需要再测试一下Mark Word中偏向锁的标识是否设置成1（表示当前是偏向锁）：如果没有设置，则使用CAS竞争锁；如果设置了，则尝试使用CAS将对象头的偏向锁指向当前线程。</p><ul><li><p><strong>偏向锁的撤销</strong></p><p>偏向锁使用了一种等到竞争出现才释放锁的机制，所以当其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁。偏向锁的撤销，需要等待全局安全点（在这个时间点上没有正在执行的字节码）。它会首先暂停拥有偏向锁的线程，然后检查持有偏向锁的线程是否活着，如果线程不处于活动状态，则将对象头设置成无锁状态；如果线程仍然活着，拥有偏向锁的栈会被执行，遍历偏向对象的锁记录，栈中的锁记录和对象头的Mark Word要么重新偏向于其他线程，要么恢复到无锁或者标记对象不适合作为偏向锁，最后唤醒暂停的线程。</p></li><li><p><strong>偏向锁的关闭</strong></p><p>偏向锁在Java 6和Java 7里是默认启用的，但是它在应用程序启动几秒钟之后才激活，如有必要可以使用JVM参数来关闭延迟：<code>-XX:BiasedLockingStartupDelay=0</code>。如果你确定应用程序里所有的锁通常情况下处于竞争状态，可以通过JVM参数关闭偏向锁：<code>-XX:-UseBiasedLocking=false</code>，那么程序默认会进入轻量级锁状态。</p></li></ul><p><strong>轻量级锁</strong></p><ul><li><p>轻量级加锁</p><p>线程在执行同步块之前，JVM会先在当前线程的栈桢中创建用于存储锁记录的空间，并将对象头中的Mark Word复制到锁记录中，官方称为Displaced Mark Word。然后线程尝试使用CAS将对象头中的Mark Word替换为指向锁记录的指针。如果成功，当前线程获得锁，如果失败，表示其他线程竞争锁，当前线程便尝试使用自旋来获取锁。</p></li><li><p>轻量级解锁</p><p>轻量级解锁时，会使用原子的CAS操作将Displaced Mark Word替换回到对象头，如果成功，则表示没有竞争发生。如果失败，表示当前锁存在竞争，锁就会膨胀成重量级锁。</p></li></ul><p><strong>不同锁的对比</strong></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Java%E5%B9%B6%E5%8F%91%E6%9C%BA%E5%88%B6%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/%E9%94%81%E7%9A%84%E5%AF%B9%E6%AF%94.jpg" alt=""></p><hr><h5 id="3-原子操作"><a href="#3-原子操作" class="headerlink" title="3. 原子操作"></a>3. 原子操作</h5><p>原子操作是不可被中断的一个或一系列操作</p><p><strong>java中如何实现原子操作</strong></p><ul><li><p>使用循环CAS实现原子操作</p><p>CAS有三个参数，内存的实际值，期望值和新的值，只有当实际值与期望值相同时才能成功将新的值赋给期望的值，如果失败则进行自旋。</p><ul><li><p>可能出现的问题</p><ul><li><p>ABA问题</p><p>因为CAS需要在操作值的时候，检查值有没有发生变化，如果没有发生变化则更新，但是如果一个值原来是A，变成了B，又变成了A，那么使用CAS进行检查时会发现它的值没有发生变化，但是实际上却变化了。</p><p>解决思路：在变量前面追加上版本号，每次变量更新的时候把版本号加1，JDK的Atomic包里提供了一个类AtomicStampedReference来解决ABA问题</p></li><li><p>循环时间长开销大</p><p>自旋CAS如果长时间不成功，会给CPU带来非常大的执行开销</p></li><li><p>只能保证一个共享变量的原子操作</p><p>当对一个共享变量执行操作时，我们可以使用循环CAS的方式来保证原子操作，但是对多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候就可以用锁。</p></li></ul></li></ul></li><li><p>使用锁机制实现原子操作</p><p>锁机制保证了只有获得锁的线程才能够操作锁定的内存区域。JVM内部实现了很多种锁机制，有偏向锁、轻量级锁和互斥锁。有意思的是除了偏向锁，JVM实现锁的方式都用了循环CAS，即当一个线程想进入同步块的时候使用循环CAS的方式来获取锁，当它退出同步块的时候使用循环CAS释放锁。</p></li></ul><hr><h5 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h5><p>volatile、synchronized和原子操作的实现原理是实现java并发编程最基础工具</p><hr><p><strong>5. 参考</strong></p><p><em>《java并发编程的艺术》方腾飞 魏鹏 程晓明</em></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> java进阶 </category>
+          
+          <category> java并发 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> java </tag>
+            
+            <tag> 总结 </tag>
+            
+            <tag> java并发 </tag>
             
         </tags>
       
