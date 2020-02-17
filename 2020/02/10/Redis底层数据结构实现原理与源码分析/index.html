@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <title>Redis底层数据结构实现原理与源码分析 | Severin的博客</title>
+  
+  
+
+  
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- meta -->
+  
+
+  <!-- link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.10.1/css/all.min.css">
+  
+
+  
+  <link rel="shortcut icon" type='image/x-icon' href="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/favicon.ico">
+  
+
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11.26/css/style.css">
+
+  
+
+  <script>
+    function setLoadingBarProgress(num) {
+      document.getElementById('loading-bar').style.width=num+"%";
+    }
+  </script>
+
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  
+  
+  <div class="cover-wrapper">
+    <cover class='cover post half'>
+      
+        
+  <h1 class='title'>Severin</h1>
+
+
+  <div class="m_search">
+    <form name="searchform" class="form u-search-form">
+      <input type="text" class="input u-search-input" placeholder="" />
+      <i class="icon fas fa-search fa-fw"></i>
+    </form>
+  </div>
+
+<div class='menu navgation'>
+  <ul class='h-list'>
+    
+      
+        <li>
+          <a class="nav home" href="/"
+            
+            
+            id="home">
+            <i class='fas fa-rss fa-fw'></i>&nbsp;博文
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/friends/"
+            
+              rel="nofollow"
+            
+            
+            id="friends">
+            <i class='fas fa-link fa-fw'></i>&nbsp;友链
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/about/"
+            
+              rel="nofollow"
+            
+            
+            id="about">
+            <i class='fas fa-info-circle fa-fw'></i>&nbsp;关于
+          </a>
+        </li>
+      
+    
+  </ul>
+</div>
+
+      
+    </cover>
+    <header class="l_header pure">
+  <div id="loading-bar-wrapper">
+    <div id="loading-bar" class="pure"></div>
+  </div>
+
+	<div class='wrapper'>
+		<div class="nav-main container container--flex">
+      <a class="logo flat-box" href='/' >
+        
+          Severin的博客
+        
+      </a>
+			<div class='menu navgation'>
+				<ul class='h-list'>
+          
+  					
+  						<li>
+								<a class="nav flat-box" href="/"
+                  
+                  
+                  id="home">
+									<i class='fas fa-grin fa-fw'></i>&nbsp;示例
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/categories/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="categories">
+									<i class='fas fa-folder-open fa-fw'></i>&nbsp;分类
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/tags/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="tags">
+									<i class='fas fa-hashtag fa-fw'></i>&nbsp;标签
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/archives/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="archives">
+									<i class='fas fa-archive fa-fw'></i>&nbsp;归档
+								</a>
+							</li>
+      			
+      		
+				</ul>
+			</div>
+
+			
+				<div class="m_search">
+					<form name="searchform" class="form u-search-form">
+						<input type="text" class="input u-search-input" placeholder="Search" />
+						<i class="icon fas fa-search fa-fw"></i>
+					</form>
+				</div>
+			
+			<ul class='switcher h-list'>
+				
+					<li class='s-search'><a class="fas fa-search fa-fw" href='javascript:void(0)'></a></li>
+				
+				<li class='s-menu'><a class="fas fa-bars fa-fw" href='javascript:void(0)'></a></li>
+			</ul>
+		</div>
+
+		<div class='nav-sub container container--flex'>
+			<a class="logo flat-box"></a>
+			<ul class='switcher h-list'>
+				<li class='s-comment'><a class="flat-btn fas fa-comments fa-fw" href='javascript:void(0)'></a></li>
+        
+          <li class='s-toc'><a class="flat-btn fas fa-list fa-fw" href='javascript:void(0)'></a></li>
+        
+			</ul>
+		</div>
+	</div>
+</header>
+	<aside class="menu-phone">
+    <header>
+		<nav class="menu navgation">
+      <ul>
+        
+          
+            <li>
+							<a class="nav flat-box" href="/"
+                
+                
+                id="home">
+								<i class='fas fa-clock fa-fw'></i>&nbsp;近期文章
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/blog/archives/"
+                
+                  rel="nofollow"
+                
+                
+                id="blogarchives">
+								<i class='fas fa-archive fa-fw'></i>&nbsp;文章归档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/projects/"
+                
+                
+                id="projects">
+								<i class='fas fa-code-branch fa-fw'></i>&nbsp;开源项目
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/friends/"
+                
+                  rel="nofollow"
+                
+                
+                id="friends">
+								<i class='fas fa-link fa-fw'></i>&nbsp;我的友链
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="https://xaoxuu.com/wiki/material-x/"
+                
+                  rel="nofollow"
+                
+                
+                id="https:xaoxuu.comwikimaterial-x">
+								<i class='fas fa-book fa-fw'></i>&nbsp;主题文档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/about/"
+                
+                  rel="nofollow"
+                
+                
+                id="about">
+								<i class='fas fa-info-circle fa-fw'></i>&nbsp;关于小站
+							</a>
+            </li>
+          
+       
+      </ul>
+		</nav>
+    </header>
+	</aside>
+<script>setLoadingBarProgress(40);</script>
+
+  </div>
+
+
+  <div class="l_body">
+    <div class='body-wrapper'>
+      <div class='l_main'>
+  
+
+  <article id="post" class="post white-box article-type-post" itemscope itemprop="blogPost">
+    
+
+
+  <section class='meta'>
+    
+    
+    <div class="meta" id="header-meta">
+      
+        
+  
+    <h1 class="title">
+      <a href="/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+        Redis底层数据结构实现原理与源码分析
+      </a>
+    </h1>
+  
+
+
+      
+      <div class='new-meta-box'>
+        
+          
+        
+          
+            
+  <div class='new-meta-item author'>
+    
+      <a href="https://www.severin.xyz" rel="nofollow">
+        
+          <i class="fas fa-user" aria-hidden="true"></i>
+        
+        <p>Severin</p>
+      </a>
+    
+  </div>
+
+
+          
+        
+          
+            <div class="new-meta-item date">
+  <a class='notlink'>
+    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+    <p>2020-02-10</p>
+  </a>
+</div>
+
+          
+        
+          
+            
+  
+  <div class='new-meta-item category'>
+    <a href='/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/' rel="nofollow">
+      <i class="fas fa-folder-open" aria-hidden="true"></i>
+      <p>数据库&nbsp;/&nbsp;redis</p>
+    </a>
+  </div>
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item browse busuanzi">
+      <a class='notlink'>
+        <i class="fas fa-eye" aria-hidden="true"></i>
+        <p>
+          <span id="busuanzi_value_page_pv">
+            <i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i>
+          </span>
+        </p>
+      </a>
+    </div>
+  
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item wordcount">
+      <a class='notlink'>
+        <i class="fas fa-keyboard" aria-hidden="true"></i>
+        <p>字数统计:</p>
+        <p>7.3k字</p>
+      </a>
+    </div>
+    <div class="new-meta-item readtime">
+      <a class='notlink'>
+        <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+        <p>阅读时长≈</p>
+        <p>30分</p>
+      </a>
+    </div>
+  
+
+          
+        
+          
+            
+
+          
+        
+      </div>
+      
+        <hr>
+      
+    </div>
+  </section>
+
+
+    <section class="article typo">
+      <div class="article-entry" itemprop="articleBody">
+        <h4 id="一-字符串"><a href="#一-字符串" class="headerlink" title="一. 字符串"></a>一. 字符串</h4><h5 id="1-介绍Redis中的字符串"><a href="#1-介绍Redis中的字符串" class="headerlink" title="1. 介绍Redis中的字符串"></a>1. 介绍Redis中的字符串</h5><p>Redis是由C语言实现的，而C语言中使用char数组表示字符串，并以<code>\0</code>表示字符串的结尾。但是redis并没有使用C语言中的这种形式的字符串，Redis在设计与实现过程中充分考虑了性能问题，比如在C语言中实现获取字符长度的时间复杂度为O(n)，某些操作C语言字符串也很难完成，比如字符串动态扩容。因此Redis自己实现了字符串，称为简单动态字符串，简称SDS。</p>
+<h5 id="2-SDS的结构"><a href="#2-SDS的结构" class="headerlink" title="2. SDS的结构"></a>2. SDS的结构</h5><pre><code class="c">struct __attribute__ ((__packed__)) sdshdr64 {
+    uint64_t len; /* used */
+    uint64_t alloc; /* excluding the header and null terminator */
+    unsigned char flags; /* 3 lsb of type, 5 unused bits */
+    char buf[];
+};</code></pre>
+<p>sds使用结构体来表示，实际上一共有4个类似的结构体，分别是<code>sdshdr8</code>，<code>sdshdr16</code>，<code>sdshdr32</code>,<code>sdshdr64</code>。</p>
+<p>结构体的成员包含一个char数组，实际字符串长度len和数组长度alloc。char数组用来存放实际的字符串数据，以<code>\0</code>结尾，len表示字符串的长度，这样在计算字符串长度时就可以直接获取而不需要去遍历数组。alloc用来表示当前结构体可以容纳多长的字符串，如果字符串在执行appen之类的操作导致字符串长度动态增长，如果新的字符串长度大于alloc，那么就会引发扩容。</p>
+<h5 id="3-字符串扩容"><a href="#3-字符串扩容" class="headerlink" title="3. 字符串扩容"></a>3. 字符串扩容</h5><pre><code class="c">sds sdscatlen(sds s, const void *t, size_t len) {
+    size_t curlen = sdslen(s);
+
+    s = sdsMakeRoomFor(s,len);
+    if (s == NULL) return NULL;
+    memcpy(s+curlen, t, len);
+    sdssetlen(s, curlen+len);
+    s[curlen+len] = &#39;\0&#39;;
+    return s;
+}</code></pre>
+<p>这个函数的作用是将一个长度为len的字符串附加在字符串s后面。<code>sdsMakeRoomFor</code>用来扩大sds的缓存空间</p>
+<pre><code class="c">sds sdsMakeRoomFor(sds s, size_t addlen) {
+    void *sh, *newsh;
+    // 1. 获取sds空闲空间的长度
+    size_t avail = sdsavail(s);
+    size_t len, newlen;
+    char type, oldtype = s[-1] &amp; SDS_TYPE_MASK;
+    int hdrlen;
+    // 2. 如果sds空闲空间够用，就不需要进行扩容直接返回
+    if (avail &gt;= addlen) return s;
+    // 3. 获取sds的字符串长度
+    len = sdslen(s);
+    sh = (char*)s-sdsHdrSize(oldtype);
+    newlen = (len+addlen);
+    // SDS_MAX_PREALLOC=1024x1024
+    // 下面的代码说明，如果新字符串的长度小于1m，则sds的数组长度为新字符串的长度的2倍，否则加上1MB
+    if (newlen &lt; SDS_MAX_PREALLOC)
+        newlen *= 2;
+    else
+        newlen += SDS_MAX_PREALLOC;
+    // 判断新字符串使用哪个类型的sds头部
+    type = sdsReqType(newlen);
+
+    /* Don&#39;t use type 5: the user is appending to the string and type 5 is
+     * not able to remember empty space, so sdsMakeRoomFor() must be called
+     * at every appending operation. */
+    if (type == SDS_TYPE_5) type = SDS_TYPE_8;
+    // 计算sds头部，用于后面分配内存
+    hdrlen = sdsHdrSize(type);
+    if (oldtype==type) {
+        // 重新分配内存
+        newsh = s_realloc(sh, hdrlen+newlen+1);
+        if (newsh == NULL) return NULL;
+        s = (char*)newsh+hdrlen;
+    } else {
+        /* Since the header size changes, need to move the string forward,
+         * and can&#39;t use realloc */
+        newsh = s_malloc(hdrlen+newlen+1);
+        if (newsh == NULL) return NULL;
+        memcpy((char*)newsh+hdrlen, s, len+1);
+        s_free(sh);
+        s = (char*)newsh+hdrlen;
+        s[-1] = type;
+        sdssetlen(s, len);
+    }
+    sdssetalloc(s, newlen);
+    return s;
+}</code></pre>
+<p>通过上面的函数可以得到扩容机制：首先计算出新字符串的长度，如果该长度小于1MB，则翻倍否则增加1MB，然后判断新字符串属于哪种sds类型，最后重新分配内存得到新的sds返回。</p>
+<h5 id="4-Redis对象的表示"><a href="#4-Redis对象的表示" class="headerlink" title="4. Redis对象的表示"></a>4. Redis对象的表示</h5><p>Redis的对象使用一个叫做redisObj的结构体表示</p>
+<pre><code class="c">typedef struct redisObject {
+    unsigned type:4;
+    unsigned encoding:4;
+    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                            * LFU data (least significant 8 bits frequency
+                            * and most significant 16 bits access time). */
+    int refcount;
+    void *ptr;
+} robj;</code></pre>
+<p>type表示对象类型，encodeing表示对象编码，lru表示lru时间，refcount表示该对象的计数器，用来实现内存自动回收，ptr是一个void指针，可以指向任何类型的变量，指向内存实际的空间。</p>
+<p>看完这个结构体可以发现，Redis的开发者虽然使用C语言实现的Redis，C语言是一门面向过程的语言，但是redis的开发者试图构造出一个面向对象的体系。</p>
+<h5 id="5-字符串编码"><a href="#5-字符串编码" class="headerlink" title="5. 字符串编码"></a>5. 字符串编码</h5><p>Redis中的字符串对象有三种编码：int、embstr，raw。</p>
+<pre><code class="c">robj *createStringObject(const char *ptr, size_t len) {
+    // OBJ_ENCODING_EMBSTR_SIZE_LIMIT=44
+    if (len &lt;= OBJ_ENCODING_EMBSTR_SIZE_LIMIT)
+        // 使用emb编码
+        return createEmbeddedStringObject(ptr,len);
+    else
+        // 使用raw编码
+        return createRawStringObject(ptr,len);
+}</code></pre>
+<p>可以看出分配字符串对象时，如果字符串长度小于或等于44时使用embstr编码，否则使用raw编码。</p>
+<p><strong>embstr与raw出来字符串长度不同还有什么区别</strong></p>
+<p>embstr编码</p>
+<pre><code class="c">/* 使用编码OBJ_ENCODING_EMBSTR创建一个string对象，在这个对象中，sds字符串实际上是与对象本身在同一块中分配的不可修改的字符串。 */
+robj *createEmbeddedStringObject(const char *ptr, size_t len) {
+
+    robj *o = zmalloc(sizeof(robj)+sizeof(struct sdshdr8)+len+1);
+    struct sdshdr8 *sh = (void*)(o+1);
+
+    o-&gt;type = OBJ_STRING;
+    o-&gt;encoding = OBJ_ENCODING_EMBSTR;
+    o-&gt;ptr = sh+1;
+    o-&gt;refcount = 1;
+    if (server.maxmemory_policy &amp; MAXMEMORY_FLAG_LFU) {
+        o-&gt;lru = (LFUGetTimeInMinutes()&lt;&lt;8) | LFU_INIT_VAL;
+    } else {
+        o-&gt;lru = LRU_CLOCK();
+    }
+
+    sh-&gt;len = len;
+    sh-&gt;alloc = len;
+    sh-&gt;flags = SDS_TYPE_8;
+    if (ptr) {
+        memcpy(sh-&gt;buf,ptr,len);
+        sh-&gt;buf[len] = &#39;\0&#39;;
+    } else {
+        memset(sh-&gt;buf,0,len+1);
+    }
+    return o;
+}</code></pre>
+<p>raw编码</p>
+<pre><code class="c">/* 用编码OBJ_ENCODING_RAW创建一个字符串对象，这是一个普通的字符串对象，其中o-&gt;ptr指向一个适当的sds字符串 */
+robj *createRawStringObject(const char *ptr, size_t len) {
+    // sdsnewlen实际上内部调用malloc分配了一个sds的内存空间
+    // createObject继续分配redisObject
+    return createObject(OBJ_STRING, sdsnewlen(ptr,len));
+}</code></pre>
+<pre><code class="c">/* ===================== Creation and parsing of objects ==================== */
+
+robj *createObject(int type, void *ptr) {
+    // 分配redisObject
+    robj *o = zmalloc(sizeof(*o));
+    o-&gt;type = type;
+    o-&gt;encoding = OBJ_ENCODING_RAW;
+    o-&gt;ptr = ptr;
+    o-&gt;refcount = 1;
+
+    /* Set the LRU to the current lruclock (minutes resolution), or
+     * alternatively the LFU counter. */
+    if (server.maxmemory_policy &amp; MAXMEMORY_FLAG_LFU) {
+        o-&gt;lru = (LFUGetTimeInMinutes()&lt;&lt;8) | LFU_INIT_VAL;
+    } else {
+        o-&gt;lru = LRU_CLOCK();
+    }
+    return o;
+}</code></pre>
+<p><strong>embstr</strong> 存储形式将 <strong>RedisObject 对象头和 SDS 对象连续存在一起</strong>，使用 malloc 方法一次分配。而 <strong>raw</strong> 存储形式不一样，它<strong>需要两次 malloc，两个对象头在内存地址上一般是不连续的</strong>。如下图所示:</p>
+<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/sds.png" style="zoom:67%;" />
+
+<h5 id="6-sds的优点"><a href="#6-sds的优点" class="headerlink" title="6. sds的优点"></a>6. sds的优点</h5><ul>
+<li>获取字符串长度的复杂度为O(1)</li>
+<li>API是安全的，不会造成缓冲区溢出</li>
+<li>修改字符串长度N次最多需要执行N次内存重分配，预分配和惰性释放</li>
+<li>可以保存文本或者二进制数据，可以使用len属性判断是否结束</li>
+<li>可以使用C库中的函数</li>
+</ul>
+<h5 id="7-疑问"><a href="#7-疑问" class="headerlink" title="7. 疑问"></a>7. 疑问</h5><ul>
+<li><p>为什么以44作为两种编码的分界点</p>
+<p>内存分配器一次能分配64字节，如果超过64字节就会转化为raw格式。字符串对象由对象头和sds头以及字符串组成。对象头占了16字节，sds头占了（sdshdr8）占了3字节。64-16-3=45字节，但是字符串末尾需要使用<code>\0</code>，所以还剩下44字节。</p>
+</li>
+<li><p>字符串的应用</p>
+<ol>
+<li>作为计数器</li>
+<li>存储简单的键值对</li>
+<li>将对象json序列化后存储，获取时反序列化</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h4 id="二-链表"><a href="#二-链表" class="headerlink" title="二. 链表"></a>二. 链表</h4><h5 id="1-介绍Redis中的list"><a href="#1-介绍Redis中的list" class="headerlink" title="1. 介绍Redis中的list"></a>1. 介绍Redis中的list</h5><h5 id="2-linkedlist的结构"><a href="#2-linkedlist的结构" class="headerlink" title="2. linkedlist的结构"></a>2. linkedlist的结构</h5><p><strong>list节点</strong></p>
+<pre><code class="c">typedef struct listNode {
+    struct listNode *prev;
+    struct listNode *next;
+    void *value;
+} listNode;</code></pre>
+<p>list节点包含前后指针以及一个void类型的指针，说明该链表节点可以放任何类型的数据（有点泛型的意思）。前后指针说明这个链表是双向链表</p>
+<p><strong>list底层数据结构</strong></p>
+<pre><code class="c">typedef struct list {
+    listNode *head;
+    listNode *tail;
+    void *(*dup)(void *ptr);
+    void (*free)(void *ptr);
+    int (*match)(void *ptr, void *key);
+    unsigned long len;
+} list;</code></pre>
+<p>使用结构体list表示链表，list结构体中包含头尾指针和链表长度。</p>
+<p><strong>list相关的常用方法</strong></p>
+<pre><code class="c">list *listCreate(void);// 创建链表
+void listRelease(list *list);// 释放链表
+void listEmpty(list *list);// 清空链表
+list *listAddNodeHead(list *list, void *value);// 在链表头添加元素
+list *listAddNodeTail(list *list, void *value);// 在链表尾添加元素
+list *listInsertNode(list *list, listNode *old_node, void *value, int after);
+void listDelNode(list *list, listNode *node);
+listIter *listGetIterator(list *list, int direction);
+listNode *listNext(listIter *iter);
+void listReleaseIterator(listIter *iter);
+list *listDup(list *orig);
+listNode *listSearchKey(list *list, void *key);
+listNode *listIndex(list *list, long index);
+void listRewind(list *list, listIter *li);
+void listRewindTail(list *list, listIter *li);
+void listRotate(list *list);
+void listJoin(list *l, list *o);</code></pre>
+<p>上面说明redis实现了对list的各种操作，list结构非常简单。</p>
+<hr>
+<h4 id="三-压缩列表"><a href="#三-压缩列表" class="headerlink" title="三. 压缩列表"></a>三. 压缩列表</h4><h5 id="1-介绍压缩列表"><a href="#1-介绍压缩列表" class="headerlink" title="1. 介绍压缩列表"></a>1. 介绍压缩列表</h5><p>当一个列表只包含少量表项，并且每个列表项要么是小整数，要么是较短的字符串 ，那么redis就会使用压缩列表来作为列表的底层实现。</p>
+<h5 id="2-ziplist的结构"><a href="#2-ziplist的结构" class="headerlink" title="2. ziplist的结构"></a>2. ziplist的结构</h5><pre><code class="c">unsigned char *ziplistNew(void) {
+    unsigned int bytes = ZIPLIST_HEADER_SIZE+1;// ZIPLIST_HEADER_SIZE=10字节
+    unsigned char *zl = zmalloc(bytes);
+    ZIPLIST_BYTES(zl) = intrev32ifbe(bytes);// bytes为4字节
+    ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(ZIPLIST_HEADER_SIZE);// tail_offset=4字节
+    ZIPLIST_LENGTH(zl) = 0;// len=2字节
+    zl[bytes-1] = ZIP_END;// end=1字节
+    return zl;
+}</code></pre>
+<p>一般来说使用C语言定义数据结构一般会使用结构体，但是这里是直接分配内存。通过上面的方法可以看出ziplist的结构如下图。</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/ziplist.png" alt=""></p>
+<ul>
+<li><p>bytes是一个4字节无符号整数，用来存储整个ziplist占用的字节数</p>
+</li>
+<li><p>tail是一个4字节无符号整数，用来存储ziplist最后一个节点的相对于ziplist首地址偏移量</p>
+</li>
+<li><p>len是一个2字节无符号整数，存储ziplist中节点的数目，最大值为(2^16 - 2)，当zllen大于最大值时，需要遍历整个ziplist才能获取ziplist节点的数目</p>
+</li>
+<li><p>entry是数据节点</p>
+</li>
+</ul>
+<p>ziplist占用的是一段连续的内存空间。</p>
+<h5 id="3-ziplist节点"><a href="#3-ziplist节点" class="headerlink" title="3. ziplist节点"></a>3. ziplist节点</h5><pre><code class="c">typedef struct zlentry {
+    unsigned int prevrawlensize; /* 记录prevrawlen长度数值所需要的字节数*/
+    unsigned int prevrawlen;     /* 上一个节点的长度 */
+    unsigned int lensize;        /* 表示当前长度表示所需的字节数*/
+    unsigned int len;            /* 表示当前数据节点的长度 */
+    unsigned int headersize;     /* 数据结点的头部信息长度的字节数 */
+    unsigned char encoding;      /* 编码方式 */
+    unsigned char *p;            /* Pointer to the very start of the entry, that
+                                    is, this points to prev-entry-len field. */
+} zlentry;</code></pre>
+<pre><code class="c">/* Return a struct with all information about an entry. */
+void zipEntry(unsigned char *p, zlentry *e) {
+
+    ZIP_DECODE_PREVLEN(p, e-&gt;prevrawlensize, e-&gt;prevrawlen);
+    ZIP_DECODE_LENGTH(p + e-&gt;prevrawlensize, e-&gt;encoding, e-&gt;lensize, e-&gt;len);
+    e-&gt;headersize = e-&gt;prevrawlensize + e-&gt;lensize;
+    e-&gt;p = p;// 节点实际内容
+}</code></pre>
+<p>ziplist节点如图所示</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/ziplist2.png" alt=""></p>
+<ul>
+<li><p>previous_entry_length</p>
+<p>表示前一个节点的长度，已知当前节点首地址可以计算出上一个节点的首地址，用来实现从后往前遍历压缩列表，占1个字节或者5个字节。当上一个节点的长度小于254字节时，占一个字节。当上一个节点的长度大于等于254时，占5个字节，其中第一个字节值为254，后面4个字节用来表示长度</p>
+</li>
+<li><p>encoding</p>
+<p>记录了节点的content属性所保存的数据的类型和长度，使用前两位表示类型，类型有字节数组和整数两种。其他的位表示长度。</p>
+<p>字节数组</p>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>编码长度</th>
+<th>conten属性保存的值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00</td>
+<td>1字节</td>
+<td>长度小于2^6-1的字节数组</td>
+</tr>
+<tr>
+<td>01</td>
+<td>2字节</td>
+<td>长度小于2^14-1的字节数组</td>
+</tr>
+<tr>
+<td>10</td>
+<td>5字节</td>
+<td>长度小于2^38-1的字节数组</td>
+</tr>
+</tbody></table>
+<p>整数</p>
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>编码长度</th>
+<th>content属性保存的值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>11000000</td>
+<td>1字节</td>
+<td>int16类型的整数</td>
+</tr>
+<tr>
+<td>11010000</td>
+<td>1字节</td>
+<td>int32类型的整数</td>
+</tr>
+<tr>
+<td>11100000</td>
+<td>1字节</td>
+<td>int64类型的整数</td>
+</tr>
+<tr>
+<td>11110000</td>
+<td>1字节</td>
+<td>24位有符号整数</td>
+</tr>
+<tr>
+<td>11111110</td>
+<td>1字节</td>
+<td>8位有符号整数</td>
+</tr>
+<tr>
+<td>1111xxxx</td>
+<td>1字节</td>
+<td>没有相应的content，encoding属性表示0到12的数字</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<ul>
+<li><p>content</p>
+<p>保存节点的值</p>
+</li>
+</ul>
+<h5 id="4-压缩列表的连锁更新"><a href="#4-压缩列表的连锁更新" class="headerlink" title="4. 压缩列表的连锁更新"></a>4. 压缩列表的连锁更新</h5><p>previous_entry_length：当前一个节点长度小于254字节时占用一个字节；大于或等于254字节时占用5个字节，所以当在某个元素之前插入一个较大的节点，可能导致后面的节点中的previous_entry_length属性由1个字节变成5个字节从而导致后面那个节点也变大，后面的那个节点也可能会超过254字节，这种更新可能会持续下去，称为连锁更新，连锁更新发生后需要重新分配内存。</p>
+<hr>
+<h4 id="四-哈希表"><a href="#四-哈希表" class="headerlink" title="四. 哈希表"></a>四. 哈希表</h4><h5 id="1-介绍哈希表"><a href="#1-介绍哈希表" class="headerlink" title="1. 介绍哈希表"></a>1. 介绍哈希表</h5><h5 id="2-哈希表实现"><a href="#2-哈希表实现" class="headerlink" title="2. 哈希表实现"></a>2. 哈希表实现</h5><pre><code class="c">typedef struct dict {
+    dictEntry **table;
+    dictType *type;
+    unsigned long size;
+    unsigned long sizemask;
+    unsigned long used;
+    void *privdata;
+} dict;</code></pre>
+<p>上面的结构体表示一个哈希表结构</p>
+<pre><code class="c">typedef struct dictEntry {
+    void *key;
+    void *val;
+    struct dictEntry *next;
+} dictEntry;</code></pre>
+<p>上面的结构体表示一个哈希表Entry节点，包括key，value和一个指针指向下一个节点。</p>
+<h5 id="3-冲突解决"><a href="#3-冲突解决" class="headerlink" title="3. 冲突解决"></a>3. 冲突解决</h5><p><strong>添加元素</strong></p>
+<pre><code class="c">/* Add an element to the target hash table */
+static int dictAdd(dict *ht, void *key, void *val) {
+    int index;
+    dictEntry *entry;
+
+    /*获取节点插入的位置，如果为-1证明已经存在一个key相等的结点 */
+    if ((index = _dictKeyIndex(ht, key)) == -1)
+        return DICT_ERR;
+
+    /* 为节点分配内存，并使用头插法插入元素 */
+    entry = malloc(sizeof(*entry));
+    entry-&gt;next = ht-&gt;table[index];
+    ht-&gt;table[index] = entry;
+
+    /* Set the hash entry fields. */
+    dictSetHashKey(ht, entry, key);
+    dictSetHashVal(ht, entry, val);
+    ht-&gt;used++;
+    return DICT_OK;
+}</code></pre>
+<p>通过上面的方法可以知道Redis解决哈希冲突使用的是拉链法</p>
+<h5 id="4-rehash"><a href="#4-rehash" class="headerlink" title="4. rehash"></a>4. rehash</h5><p>随着操作的不断进行，哈希表保存的键值对会逐渐的增多，为了让哈希表的负载因子维持在一个合理的范围之内，当哈希表保存的键值对太多或者太少了，会对哈希表进行扩展或者收缩。这个步骤就是rehash的过程。</p>
+<pre><code class="c">int dictRehash(dict *d, int n) {
+    int empty_visits = n*10; /* 最多可以遇到10*n个空桶 */
+    if (!dictIsRehashing(d)) return 0;
+
+    while(n-- &amp;&amp; d-&gt;ht[0].used != 0) {
+        dictEntry *de, *nextde;
+
+        /* 保证rehasIdx不会超过旧桶的大小 */
+        assert(d-&gt;ht[0].size &gt; (unsigned long)d-&gt;rehashidx);
+        // 如果遇到某个桶是空的，empt_visits要减去1，如果等于0就结束这次rehash操作
+        while(d-&gt;ht[0].table[d-&gt;rehashidx] == NULL) {
+            d-&gt;rehashidx++;
+            if (--empty_visits == 0) return 1;
+        }
+        // 获取到要rehash的桶
+        de = d-&gt;ht[0].table[d-&gt;rehashidx];
+        /* 将旧桶中的所有key移动到新的哈希表中 */
+        while(de) {
+            uint64_t h;
+
+            nextde = de-&gt;next;
+            /* Get the index in the new hash table */
+            h = dictHashKey(d, de-&gt;key) &amp; d-&gt;ht[1].sizemask;
+            de-&gt;next = d-&gt;ht[1].table[h];
+            d-&gt;ht[1].table[h] = de;
+            d-&gt;ht[0].used--;
+            d-&gt;ht[1].used++;
+            de = nextde;
+        }
+        // 清空旧桶中的元素
+        d-&gt;ht[0].table[d-&gt;rehashidx] = NULL;
+        // 继续进行下一步
+        d-&gt;rehashidx++;
+    }
+
+    /* 如果旧的哈希表中没有元素了，说明rehash完成，把新的哈希表赋给旧的哈希表，然后返回0 */
+    if (d-&gt;ht[0].used == 0) {
+        zfree(d-&gt;ht[0].table);
+        d-&gt;ht[0] = d-&gt;ht[1];
+        _dictReset(&amp;d-&gt;ht[1]);
+        d-&gt;rehashidx = -1;
+        return 0;
+    }
+
+    /* rehash过程没有完全完成，返回1*/
+    return 1;
+}</code></pre>
+<p>从上面的方法可以看出redis的rehash过程不是一步完成的，这个过程称为<strong>渐进式rehash</strong>，哈希表的结构如下：</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/rehash.png" alt=""></p>
+<p><strong>渐进式rehash过程</strong></p>
+<ul>
+<li>为table[1]分配内存空间，让哈希表同时持有两个空间</li>
+<li>在哈希表维持一个索引计数器变量rehashidx，并将它设置成0，表示rehash工作正式开始</li>
+<li>在rehash进行期间，对哈希表的添加删除查找和更新操作，程序除了执行指定操作外，还会顺带将table[0]在rehashidx位置rehash到table[1],当rehash完成，rehashidx的值会增加</li>
+<li>经过多次rehash操作，最终会将所有元素都rehash至table[1]，完成后将rehashidx设为-1，表示rehash结束</li>
+</ul>
+<p><strong>渐进式rehash过程的其他操作</strong></p>
+<p>对于查找、删除、更新操作会在两个table中进行。</p>
+<p><strong>渐进式rehash操作的优点</strong></p>
+<p>如果不采取rehash的操作，当一个哈希表的元素太多的时候，需要很长的时间才能完成rehash操作，而redis是单线程处理命令的，所以会导致其他命令阻塞。渐进式rehash可以把rehash的时间分摊到多次操作中。</p>
+<hr>
+<h4 id="五-跳跃表"><a href="#五-跳跃表" class="headerlink" title="五. 跳跃表"></a>五. 跳跃表</h4><h5 id="1-介绍跳跃表"><a href="#1-介绍跳跃表" class="headerlink" title="1. 介绍跳跃表"></a>1. 介绍跳跃表</h5><p>跳跃表是一种有序的支持快速查找的数据结构，其效率与平衡树差不多，但是实现比平衡树简单。在redis中跳跃表是有序集合的底层结构。</p>
+<h5 id="2-跳跃表的实现"><a href="#2-跳跃表的实现" class="headerlink" title="2. 跳跃表的实现"></a>2. 跳跃表的实现</h5><pre><code class="java">package datastruct;
+
+import java.util.*;
+
+public class SkipList&lt;K,V&gt;{
+    private Comparator&lt;K&gt; comparator;
+    // 最大高度
+    private int maxLevel;
+
+    private int level;
+
+    private Entry header;
+
+    // 概率参数
+    private double p;
+
+    public SkipList(){
+        this(5,0.5);
+    }
+
+    public SkipList(int maxLevel,double p){
+        this.maxLevel=maxLevel;
+        this.p=p;
+        header=new Entry(null,null,maxLevel);
+    }
+
+    public SkipList(Comparator&lt;K&gt; comparator){
+        this();
+        this.comparator=comparator;
+    }
+
+    public V search(K key){
+        Entry entry = searchElement(key);
+        return entry==null?null:(V)entry.value;
+    }
+
+    private Entry searchElement(K key){
+        Entry current=header;
+        for (int i=level-1;i&gt;=0;i--){
+            while (current.next[i]!=null&amp;&amp;this.compare(current.next[i].key,key)&lt;0){
+                current=current.next[i];
+            }
+        }
+        current=current.next[0];
+        if (current!=null&amp;&amp;compare(current.key,key)==0){
+            return current;
+        }
+        return null;
+    }
+
+    public void insert(K key,V value){
+        Entry current=header;
+        Entry[] update=new Entry[maxLevel];
+        for (int i=level-1;i&gt;=0;i--){
+            while (current.next[i]!=null
+                    &amp;&amp;compare(current.next[i].key,key)&lt;0){
+                current=current.next[i];
+            }
+            update[i]=current;
+        }
+        current=current.next[0];
+        if (current==null||compare(current.key,key)!=0){
+            int randomLevel= randomLevel();
+            if (randomLevel&gt;level){
+                for (int i=level;i&lt;randomLevel;i++){
+                    update[i]=header;
+                }
+                level=randomLevel;
+            }
+            Entry entry=new Entry(key,value,randomLevel);
+            for (int i=0;i&lt;randomLevel;i++){
+                entry.next[i]=update[i].next[i];
+                update[i].next[i]=entry;
+            }
+        }
+    }
+
+    public void remove(K key){
+        Entry[] update=new Entry[level];
+        Entry current=header;
+        for(int i=level-1;i&gt;=0;i--){
+            while (current.next[i]!=null&amp;&amp;compare(current.next[i].key,key)&lt;0){
+                current=current.next[i];
+            }
+            update[i]=current;
+        }
+        for (int i=level-1;i&gt;=0;i--){
+            if (update[i].next!=null&amp;&amp;update[i].next[i].key == key){
+                update[i].next[i]=update[i].next[i].next[i];
+            }
+        }
+    }
+    /**
+     * 获取随机的高度
+     * @return 高度
+     */
+    private int randomLevel(){
+        int level=1;
+        double temp=Math.random();
+        while (level&lt;maxLevel&amp;&amp;temp&lt;p){
+            temp=Math.random();
+            level++;
+        }
+        return level;
+    }
+
+    public List&lt;V&gt; valueList(){
+        List&lt;V&gt; list=new ArrayList&lt;&gt;();
+        Entry current=header.next[0];
+        while (current!=null){
+            list.add((V)current.value);
+            current=current.next[0];
+        }
+        return list;
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private int compare(Object k1,Object k2){
+        return comparator!=null?comparator.compare((K)k1,(K)k2):
+                ((Comparable&lt;? super K&gt;)k1).compareTo((K)k2);
+    }
+
+
+    static final class Entry{
+        Object key;
+        Object value;
+        Entry[] next;
+        int level;
+        Entry(Object key,Object value,int level){
+            this.key=key;
+            this.value=value;
+            this.level=level;
+            this.next=new Entry[level];
+        }
+    }
+}</code></pre>
+<p>上面是自己实现的一个跳跃表</p>
+<h5 id="3-跳跃表特点分析"><a href="#3-跳跃表特点分析" class="headerlink" title="3. 跳跃表特点分析"></a>3. 跳跃表特点分析</h5><p><strong>跳表思想</strong></p>
+<p>跳跃表是一种支持快速查找删除插入的有序的列表结构，首先对于列表我们常见的由数组和链表，数组的特点是内存空间连续，对于排序的数组可以通过二分法进行快速查找，但是对于增加元素和删除元素操作，数组需要调整大量元素的位置，并且可能需要重新分配内存空间完成扩容操作。链表的优点是对于修改开销小，但是由于每个元素不是连续的，所以查找需要从第一个元素向后遍历才能找到目标元素。而跳跃表就是在链表的基础上解决了查找的问题，它的思路是普通的单链表查找时每次只能移动一个元素，根据二分查找的思想，如果可以直接找到中间的元素就可以少移动一半的元素，但是链表的元素不是内存连续的，所以无法计算出了，而跳跃表的实现是每个节点不在像单链表一样只有一个后继指针指向下一个结点，而是有多个指针组成的数组。利用这些指针数组就可以实现类似二分查找的操作，理想情况下每隔两个元素连接起来，然后是每隔4个，8个以此类推。这样在查找元素时每次都可以淘汰一半的元素不用考虑。当然理想情况很难实现，为此跳跃表的实现使用概率的方式去决定每隔元素有多少个指针指向下一个元素。</p>
+<p><strong>时间复杂度</strong></p>
+<p>查找，删除，插入的时间复杂度是O(logn)</p>
+<h5 id="4-为什么使用跳跃表"><a href="#4-为什么使用跳跃表" class="headerlink" title="4. 为什么使用跳跃表"></a>4. 为什么使用跳跃表</h5><p>为什么redis使用跳跃表来实现有序集合而不是平衡树如B+树。</p>
+<p>Redis的作者是这样说的</p>
+<blockquote>
+<p>1) They are not very memory intensive. It’s up to you basically. Changing parameters about the probability of a node to have a given number of levels will make then less memory intensive than btrees.</p>
+<p>2) A sorted set is often target of many ZRANGE or ZREVRANGE operations, that is, traversing the skip list as a linked list. With this operation the cache locality of skip lists is at least as good as with other kind of balanced trees.</p>
+<p>3) They are simpler to implement, debug, and so forth. For instance thanks to the skip list simplicity I received a patch (already in Redis master) with augmented skip lists implementing ZRANK in O(log(N)). It required little changes to the code.</p>
+</blockquote>
+<p>大概意思是</p>
+<ul>
+<li>跳跃表比平衡树占用更少的内存（所有平衡树一般用于基于磁盘的查找，跳跃表用于基于内存的查找）</li>
+<li>跳跃表方便进行范围查找</li>
+<li>跳跃表的实现比平衡树简单，但是性能差不多</li>
+</ul>
+<hr>
+<h4 id="六-整数集合"><a href="#六-整数集合" class="headerlink" title="六. 整数集合"></a>六. 整数集合</h4><h5 id="1-整数集合介绍"><a href="#1-整数集合介绍" class="headerlink" title="1. 整数集合介绍"></a>1. 整数集合介绍</h5><p>整数集合是集合键的底层实现之一，当一个集合只包含整数值元素，并且这个集合的元素数量不多时，Redis就会使用整数集合作为集合键的底层实现。</p>
+<h5 id="2-整数集合的实现"><a href="#2-整数集合的实现" class="headerlink" title="2. 整数集合的实现"></a>2. 整数集合的实现</h5><pre><code class="c">typedef struct intset {
+    uint32_t encoding;
+    uint32_t length;
+    int8_t contents[];
+} intset;</code></pre>
+<p>整数集合的结构体如上所示，包括一个uint32_t的encoding成员代表编码对象，length表示集合元素个数，int8_t数组content用来存放实际的数据，数据的解码按照编码encoding的值来确定。下面时对整数集合的一些操作。</p>
+<pre><code class="c">intset *intsetNew(void);// 创建一个新的整数集合
+intset *intsetAdd(intset *is, int64_t value, uint8_t *success);// 插入元素
+intset *intsetRemove(intset *is, int64_t value, int *success);// 删除元素
+uint8_t intsetFind(intset *is, int64_t value);// 查找元素，使用的是二分查找
+int64_t intsetRandom(intset *is);// 随机返回一个元素
+uint8_t intsetGet(intset *is, uint32_t pos, int64_t *value);// 取出底层数组指定索引中的数
+uint32_t intsetLen(const intset *is);// 返回集合大小
+size_t intsetBlobLen(intset *is);// 返回整数集合占用的内存数</code></pre>
+<p>整数集合的结构如图所示</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/intset.png" alt=""></p>
+<p><strong>插入元素</strong></p>
+<pre><code class="c">intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
+    uint8_t valenc = _intsetValueEncoding(value);
+    uint32_t pos;
+    if (success) *success = 1;
+    /* 升级操作 */
+    if (valenc &gt; intrev32ifbe(is-&gt;encoding)) {
+        return intsetUpgradeAndAdd(is,value);
+    } else {
+        /* 查找待插入的值，如果找到了就进入if语句，否则插入位置赋给pos */
+        if (intsetSearch(is,value,&amp;pos)) {
+            if (success) *success = 0;
+            return is;
+        }
+        // 扩容并将pos位置的值往后移动
+        is = intsetResize(is,intrev32ifbe(is-&gt;length)+1);
+        if (pos &lt; intrev32ifbe(is-&gt;length)) intsetMoveTail(is,pos,pos+1);
+    }
+    // 将值插入到pos位置
+    _intsetSet(is,pos,value);
+    // 更新长度
+    is-&gt;length = intrev32ifbe(intrev32ifbe(is-&gt;length)+1);
+    return is;
+}</code></pre>
+<p>插入总能保证数组有序，时间复杂度位O(n)</p>
+<p><strong>查找操作</strong></p>
+<pre><code class="c">uint8_t intsetFind(intset *is, int64_t value) {
+    uint8_t valenc = _intsetValueEncoding(value);
+    return valenc &lt;= intrev32ifbe(is-&gt;encoding) &amp;&amp; intsetSearch(is,value,NULL);
+}</code></pre>
+<p><code>intsetSearch</code>是一个二分查找，具体代码不列出，所以查找的时间复杂度为O(logN)</p>
+<p><strong>升级操作</strong></p>
+<p>整数集合对应不同的编码，编码包括：<code>INTSET_ENC_INT16</code>,<code>INTSET_ENC_INT32</code>,<code>INTSET_ENC_INT64</code>,分别表示集合元素为16位，32位，64位整数，当插入一个较大的数就可能导致原来的编码无法容纳当前的元素，需要扩大编码，如从16位变成32位。</p>
+<pre><code class="c">/* 升级整数集合的编码，然后插入value */
+static intset *intsetUpgradeAndAdd(intset *is, int64_t value) {
+    uint8_t curenc = intrev32ifbe(is-&gt;encoding);// 获取当前编码
+    uint8_t newenc = _intsetValueEncoding(value);// 根据当前待插入的值计算出其编码
+    int length = intrev32ifbe(is-&gt;length);
+    int prepend = value &lt; 0 ? 1 : 0;
+
+    /* 设置新的编码并扩容*/
+    is-&gt;encoding = intrev32ifbe(newenc);
+    is = intsetResize(is,intrev32ifbe(is-&gt;length)+1);
+
+    //从后往前升级，这样就不会覆盖值。注意，“prepend”变量用于确保intset的开头或结尾都有一个空格。
+    while(length--)
+        _intsetSet(is,length+prepend,_intsetGetEncoded(is,length,curenc));
+
+    // 设置当前值
+    if (prepend)
+        _intsetSet(is,0,value);// 设置再第0位
+    else
+        _intsetSet(is,intrev32ifbe(is-&gt;length),value);// 设置在最后一位
+    is-&gt;length = intrev32ifbe(intrev32ifbe(is-&gt;length)+1);// 修改数组长度
+    return is;
+}</code></pre>
+<p>从上面的方法可以总结出升级过程：</p>
+<ol>
+<li>根据新元素的类型确定编码并且将数组扩容。</li>
+<li>根据新的编码从后往前将原来的元素转化成新的编码并放置到合适的位置</li>
+<li>设置当前元素（引发当前数组扩容的新元素一定比所有的旧元素大或者小，因此放到第0位或者最后一位</li>
+</ol>
+<p><strong>降级操作</strong></p>
+<p>没有降级操作</p>
+<h5 id="3-整数集合的优点"><a href="#3-整数集合的优点" class="headerlink" title="3. 整数集合的优点"></a>3. 整数集合的优点</h5><p>采用编码和升级的方式保证数组内部的元素类型相同，并且可以节约内存。</p>
+<h5 id="4-整数集合总结"><a href="#4-整数集合总结" class="headerlink" title="4. 整数集合总结"></a>4. 整数集合总结</h5><p>整数集合是集合对象的底层实现之一，用来保存不重复的整数集合。底层是一个有序数组，使用二分法进行查找，插入元素是需要维护数组的有序性，使用升级操作带来了灵活性和节约了内存。</p>
+<hr>
+<h4 id="七-对象"><a href="#七-对象" class="headerlink" title="七. 对象"></a>七. 对象</h4><h5 id="1-Redis对象介绍"><a href="#1-Redis对象介绍" class="headerlink" title="1. Redis对象介绍"></a>1. Redis对象介绍</h5><p>上面的实现是Redis对象底层数据结构，Redis并没有直接使用这些结构去实现键值对数据库，而是基于这些结构创建了一个对象系统，这个对象系统有多态的概念也有内存回收机制，并且对象还可以共享，极大的提高了Redis的灵活性和节约了内存。Redis对象用一个redisObject结构体表示。</p>
+<pre><code class="c">typedef struct redisObject {
+    unsigned type:4;
+    unsigned encoding:4;
+    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                            * LFU data (least significant 8 bits frequency
+                            * and most significant 16 bits access time). */
+    int refcount;
+    void *ptr;
+} robj;</code></pre>
+<p>Redis对象如图所示：</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/redisobject.png" alt=""></p>
+<ul>
+<li><p>type</p>
+<p>表示对象类型，如字符串对象，列表对象，集合对象，有序集合对象，哈希对象等</p>
+</li>
+<li><p>encoding</p>
+<p>编码，表示的是对象的底层数据结构</p>
+</li>
+<li><p>lru</p>
+<p>当内存紧张时，通过lru算法淘汰对象</p>
+</li>
+<li><p>refcount</p>
+<p>引用计数</p>
+</li>
+<li><p>ptr</p>
+<p>指向对象的底层数据结构</p>
+</li>
+</ul>
+<h5 id="2-字符串对象"><a href="#2-字符串对象" class="headerlink" title="2. 字符串对象"></a>2. 字符串对象</h5><p>字符串对象有三种编码，分别是int,embstr和raw。</p>
+<p>如果一个字符串对象的值可以转化成数字，并且数字的范围不会超过long，则会使用int编码，ptr指针直接指向一个数字，对于int对象，只要执行某个命令使得值不在是一个long型的数字，编码都会发生变化。如果对象保存的是字符串值并且长度小于44，会使用embstr编码，当字符串长度大于44时会转换成raw编码。embstr和raw编码都会对应一个sds对象。embstr编码是一种内存优化的编码技术，它通过一次内存分配，redisObject与sds是连续的。而raw则需要通过两次内存分配，redisObject与sds不是连续的。</p>
+<h5 id="3-列表对象"><a href="#3-列表对象" class="headerlink" title="3. 列表对象"></a>3. 列表对象</h5><p>列表对象的编码是压缩列表和双端链表。但在后序版本中使用quiklist来代替传统的压缩列表和双端链表。quickList 是 zipList 和 linkedList 的混合体，它将 linkedList 按段切分，每一段使用 zipList 来紧凑存储，多个 zipList 之间使用双向指针串接起来。</p>
+<h5 id="4-哈希对象"><a href="#4-哈希对象" class="headerlink" title="4. 哈希对象"></a>4. 哈希对象</h5><p>哈希对象的编码有压缩列表和哈希表。</p>
+<p>当哈希对象保存的元素的键和值的长度都小于64字节并且哈希对象保存的元素个数不超过512字节时使用压缩列表。</p>
+<h5 id="5-集合对象"><a href="#5-集合对象" class="headerlink" title="5. 集合对象"></a>5. 集合对象</h5><p>集合对象的编码是整数集合和哈希表。</p>
+<p>当集合中的每个元素都是数字并且元素个数不超过512时使用整数集合。</p>
+<h5 id="6-有序集合对象"><a href="#6-有序集合对象" class="headerlink" title="6. 有序集合对象"></a>6. 有序集合对象</h5><p>有序集合的编码是跳跃表和压缩列表</p>
+<p>跳表编码的有序集合使用zset作为结构作为底层实现，zset结构同时包含一个字典和一个跳跃表。字典和跳跃表都保存了对象和分数。其中字典的key保存对象，value保存分数，用来实现查找某个对象的分数。跳跃表方便实现范围操作。</p>
+<p>当有序集合保存的元素数量小于128个并且元素的长度都小于64字节时使用压缩列表实现。</p>
+<h5 id="7-类型检查与多态命令"><a href="#7-类型检查与多态命令" class="headerlink" title="7. 类型检查与多态命令"></a>7. 类型检查与多态命令</h5><p>当向服务器发送一个对key进行操作的命令，首先回去检查这个key所对应redisObject对象的类型，然后判断该操作是不是可以用在这种类型的值，如果不能则返回错误给客户端，否则会根据redisObject的编码去决定调用底层数据结构的方法去执行。</p>
+<h5 id="8-内存回收"><a href="#8-内存回收" class="headerlink" title="8. 内存回收"></a>8. 内存回收</h5><p>当创建一个对象时引用计数值会被初始化为1，当这个对象被其他引用指向时，它的引用计数值会增加1，当对象不被其他引用指向时，引用计数会减1。当对象的引用计数值为0时，对象所占用的内存会被释放。</p>
+<h5 id="9-对象共享"><a href="#9-对象共享" class="headerlink" title="9.对象共享"></a>9.对象共享</h5><p>通过引用计数值，可以实现对象的共享，但是只有整数对象才能被共享，因为判断两个整数是否相等的时间复杂度为常数时间。对于0到9999的共享，执行<code>object refcount key</code>指令会返回<code>2147483647</code>。</p>
+<h5 id="10-对象的空转时长"><a href="#10-对象的空转时长" class="headerlink" title="10. 对象的空转时长"></a>10. 对象的空转时长</h5><p>对象的空转时长是指当前对象有多久没有被访问过，某些内存回收策略会使得空转时长更长的元素淘汰，使用<code>object idletime key</code>查询空转时长。</p>
+
+      </div>
+      
+        <br>
+        <center>感谢你对我的支持！<br><fancybox><img style="width:200px; height:200px; border-radius:50%;" src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/reward.png"/></fancybox></center>
+      
+      
+        <br>
+        
+
+
+  <section class='meta' id="footer-meta">
+    <div class='new-meta-box'>
+      
+        
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-17T13:49:19+08:00">
+  <a class='notlink'>
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <p>updated at Feb 17, 2020</p>
+  </a>
+</div>
+
+        
+      
+        
+          
+  
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>数据库</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/redis/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>redis</p></a></div>
+
+
+        
+      
+        
+          
+  <div class="new-meta-item share -mob-share-list">
+  <div class="-mob-share-list share-body">
+    
+      
+        <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
+          
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/&title=Redis底层数据结构实现原理与源码分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qq.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
+          
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/&title=Redis底层数据结构实现原理与源码分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qzone.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
+          
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/&title=Redis底层数据结构实现原理与源码分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/weibo.png">
+          
+        </a>
+      
+    
+  </div>
+</div>
+
+
+
+        
+      
+    </div>
+  </section>
+
+
+      
+      
+          <div class="prev-next">
+              
+              
+                  <section class="next">
+                      <span class="art-item-right" aria-hidden="true">
+                          <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
+                          <h4>
+                              <a href="/2020/02/09/java%E5%B9%B6%E5%8F%91%E6%80%BB%E7%BB%93/" rel="prev" title="java并发总结">
+                                  
+                                      java并发总结
+                                  
+                              </a>
+                          </h4>
+                          
+                      </span>
+                  </section>
+              
+          </div>
+      
+    </section>
+  </article>
+
+
+
+  <!-- 显示推荐文章和评论 -->
+
+
+
+  <article class="post white-box comments">
+    <section class="article typo">
+      <h4><i class="fas fa-comments fa-fw" aria-hidden="true"></i>&nbsp;Comments</h4>
+      
+      
+      
+      
+        <section id="comments">
+          <div id="valine_container" class="valine_thread">
+            <i class="fas fa-spinner fa-spin fa-fw"></i>
+          </div>
+        </section>
+      
+    </section>
+  </article>
+
+
+
+
+
+
+<!-- 根据页面mathjax变量决定是否加载MathJax数学公式js -->
+
+
+
+  <script>
+    window.subData = {
+      title: 'Redis底层数据结构实现原理与源码分析',
+      tools: true
+    }
+  </script>
+
+
+</div>
+<aside class='l_side'>
+  
+    
+    
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              
+  <section class='widget toc-wrapper'>
+    
+<header class='pure'>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
+  
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
+  
+</header>
+
+    <div class='content pure'>
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#一-字符串"><span class="toc-text">一. 字符串</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-介绍Redis中的字符串"><span class="toc-text">1. 介绍Redis中的字符串</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-SDS的结构"><span class="toc-text">2. SDS的结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-字符串扩容"><span class="toc-text">3. 字符串扩容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-Redis对象的表示"><span class="toc-text">4. Redis对象的表示</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-字符串编码"><span class="toc-text">5. 字符串编码</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-sds的优点"><span class="toc-text">6. sds的优点</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-疑问"><span class="toc-text">7. 疑问</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#二-链表"><span class="toc-text">二. 链表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-介绍Redis中的list"><span class="toc-text">1. 介绍Redis中的list</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-linkedlist的结构"><span class="toc-text">2. linkedlist的结构</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#三-压缩列表"><span class="toc-text">三. 压缩列表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-介绍压缩列表"><span class="toc-text">1. 介绍压缩列表</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-ziplist的结构"><span class="toc-text">2. ziplist的结构</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-ziplist节点"><span class="toc-text">3. ziplist节点</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-压缩列表的连锁更新"><span class="toc-text">4. 压缩列表的连锁更新</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#四-哈希表"><span class="toc-text">四. 哈希表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-介绍哈希表"><span class="toc-text">1. 介绍哈希表</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-哈希表实现"><span class="toc-text">2. 哈希表实现</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-冲突解决"><span class="toc-text">3. 冲突解决</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-rehash"><span class="toc-text">4. rehash</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#五-跳跃表"><span class="toc-text">五. 跳跃表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-介绍跳跃表"><span class="toc-text">1. 介绍跳跃表</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-跳跃表的实现"><span class="toc-text">2. 跳跃表的实现</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-跳跃表特点分析"><span class="toc-text">3. 跳跃表特点分析</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-为什么使用跳跃表"><span class="toc-text">4. 为什么使用跳跃表</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#六-整数集合"><span class="toc-text">六. 整数集合</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-整数集合介绍"><span class="toc-text">1. 整数集合介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-整数集合的实现"><span class="toc-text">2. 整数集合的实现</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-整数集合的优点"><span class="toc-text">3. 整数集合的优点</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-整数集合总结"><span class="toc-text">4. 整数集合总结</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#七-对象"><span class="toc-text">七. 对象</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-Redis对象介绍"><span class="toc-text">1. Redis对象介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-字符串对象"><span class="toc-text">2. 字符串对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-列表对象"><span class="toc-text">3. 列表对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-哈希对象"><span class="toc-text">4. 哈希对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-集合对象"><span class="toc-text">5. 集合对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-有序集合对象"><span class="toc-text">6. 有序集合对象</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-类型检查与多态命令"><span class="toc-text">7. 类型检查与多态命令</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-内存回收"><span class="toc-text">8. 内存回收</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-对象共享"><span class="toc-text">9.对象共享</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#10-对象的空转时长"><span class="toc-text">10. 对象的空转时长</span></a></li></ol></li></ol>
+    </div>
+  </section>
+
+
+            
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+    
+
+  
+</aside>
+
+<footer id="footer" class="clearfix">
+  
+  
+    <div class="social-wrapper">
+      
+        
+          <a href="/atom.xml"
+            class="social fas fa-rss flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="mailto:807920489@qq.com"
+            class="social fas fa-envelope flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="https://github.com/mike-zeng"
+            class="social fab fa-github flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+    </div>
+  
+  <br>
+  <div><p>Blog content follows the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0) License</a></p>
+</div>
+  <div>
+    Use
+    <a href="https://xaoxuu.com/wiki/material-x/" target="_blank" class="codename">Material X</a>
+    as theme
+    
+      , 
+      total visits
+      <span id="busuanzi_value_site_pv"><i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i></span>
+      times
+    
+    . 
+  </div>
+</footer>
+<script>setLoadingBarProgress(80);</script>
+
+
+      <script>setLoadingBarProgress(60);</script>
+    </div>
+    <a class="s-top fas fa-arrow-up fa-fw" href='javascript:void(0)'></a>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+
+  <script>
+    var GOOGLE_CUSTOM_SEARCH_API_KEY = "";
+    var GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "";
+    var ALGOLIA_API_KEY = "";
+    var ALGOLIA_APP_ID = "";
+    var ALGOLIA_INDEX_NAME = "";
+    var AZURE_SERVICE_NAME = "";
+    var AZURE_INDEX_NAME = "";
+    var AZURE_QUERY_KEY = "";
+    var BAIDU_API_ID = "";
+    var SEARCH_SERVICE = "hexo" || "hexo";
+    var ROOT = "/"||"/";
+    if(!ROOT.endsWith('/'))ROOT += '/';
+  </script>
+
+<script src="//instant.page/1.2.2" type="module" integrity="sha384-2xV8M5griQmzyiY3CDqh1dn4z3llDVqZDqzjzcY+jCBCk/a5fXJmuZ/40JJAPeoU"></script>
+
+
+  <script async src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.5/dist/scrollreveal.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      const $reveal = $('.reveal');
+      if ($reveal.length === 0) return;
+      const sr = ScrollReveal({ distance: 0 });
+      sr.reveal('.reveal');
+    });
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      Waves.attach('.flat-btn', ['waves-button']);
+      Waves.attach('.float-btn', ['waves-button', 'waves-float']);
+      Waves.attach('.float-btn-light', ['waves-button', 'waves-float', 'waves-light']);
+      Waves.attach('.flat-box', ['waves-block']);
+      Waves.attach('.float-box', ['waves-block', 'waves-float']);
+      Waves.attach('.waves-image');
+      Waves.init();
+    });
+  </script>
+
+
+  <script async src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-busuanzi@2.3/js/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script type="text/javascript">
+      $(function(){
+        if ('.cover') {
+          $('.cover').backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        } else {
+          $.backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        }
+      });
+    </script>
+  
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/volantis@1.0.6/js/volantis.min.js"></script>
+
+    
+  
+  <script>
+  var GUEST_INFO = ['nick','mail','link'];
+  var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+    return GUEST_INFO.indexOf(item) > -1
+  });
+  var notify = 'true' == true;
+  var verify = 'true' == true;
+  var valine = new Valine();
+  valine.init({
+    el: '#valine_container',
+    notify: notify,
+    verify: verify,
+    guest_info: guest_info,
+    
+    appId: "03wbpQpd8dcMWzsThoJ6MPQA-gzGzoHsz",
+    appKey: "8KLQBX5uu2Reuus89jvRTphH",
+    placeholder: "快来评论吧~",
+    pageSize:'10',
+    avatar:'retro',
+    lang:'zh-cn',
+    highlight:'true'
+  })
+  </script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/app.js"></script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/search.js"></script>
+
+
+
+
+
+<!-- 复制 -->
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  let COPY_SUCCESS = "Copied";
+  let COPY_FAILURE = "Copy failed";
+  /*页面载入完成后，创建复制按钮*/
+  !function (e, t, a) {
+    /* code */
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '  <i class="fa fa-copy"></i><span>Copy</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+
+      clipboard.on('success', function(e) {
+        //您可以加入成功提示
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+        success_prompt(COPY_SUCCESS);
+        e.clearSelection();
+      });
+      clipboard.on('error', function(e) {
+        //您可以加入失败提示
+        console.error('Action:', e.action);
+        console.error('Trigger:', e.trigger);
+        fail_prompt(COPY_FAILURE);
+      });
+    }
+    initCopyCode();
+
+  }(window, document);
+
+  /**
+   * 弹出式提示框，默认1.5秒自动消失
+   * @param message 提示信息
+   * @param style 提示样式，有alert-success、alert-danger、alert-warning、alert-info
+   * @param time 消失时间
+   */
+  var prompt = function (message, style, time)
+  {
+      style = (style === undefined) ? 'alert-success' : style;
+      time = (time === undefined) ? 1500 : time*1000;
+      $('<div>')
+          .appendTo('body')
+          .addClass('alert ' + style)
+          .html(message)
+          .show()
+          .delay(time)
+          .fadeOut();
+  };
+
+  // 成功提示
+  var success_prompt = function(message, time)
+  {
+      prompt(message, 'alert-success', time);
+  };
+
+  // 失败提示
+  var fail_prompt = function(message, time)
+  {
+      prompt(message, 'alert-danger', time);
+  };
+
+  // 提醒
+  var warning_prompt = function(message, time)
+  {
+      prompt(message, 'alert-warning', time);
+  };
+
+  // 信息提示
+  var info_prompt = function(message, time)
+  {
+      prompt(message, 'alert-info', time);
+  };
+
+</script>
+
+
+<!-- fancybox -->
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+<script>
+  let LAZY_LOAD_IMAGE = "";
+  $(".article-entry").find("fancybox").find("img").each(function () {
+      var element = document.createElement("a");
+      $(element).attr("data-fancybox", "gallery");
+      $(element).attr("href", $(this).attr("src"));
+      /* 图片采用懒加载处理时,
+       * 一般图片标签内会有个属性名来存放图片的真实地址，比如 data-original,
+       * 那么此处将原本的属性名src替换为对应属性名data-original,
+       * 修改如下
+       */
+       if (LAZY_LOAD_IMAGE) {
+         $(element).attr("href", $(this).attr("data-original"));
+       }
+      $(this).wrap(element);
+  });
+</script>
+
+
+
+
+
+  <script>setLoadingBarProgress(100);</script>
+</body>
+</html>
