@@ -4,19 +4,6 @@
   
     
     <entry>
-      <title>MySQL探究之表空间</title>
-      <link href="/2020/02/21/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%A1%A8%E7%A9%BA%E9%97%B4/"/>
-      <url>/2020/02/21/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%A1%A8%E7%A9%BA%E9%97%B4/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>HTTPS协议</title>
       <link href="/2020/02/18/HTTPS%E5%8D%8F%E8%AE%AE/"/>
       <url>/2020/02/18/HTTPS%E5%8D%8F%E8%AE%AE/</url>
@@ -267,6 +254,68 @@
       <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E7%B4%A2%E5%BC%95/</url>
       
         <content type="html"><![CDATA[<h5 id="1-什么是索引"><a href="#1-什么是索引" class="headerlink" title="1. 什么是索引"></a>1. 什么是索引</h5><p>索引是一种用于快速查找的有序的数据结构</p><h5 id="2-InnoDB中的索引方案"><a href="#2-InnoDB中的索引方案" class="headerlink" title="2. InnoDB中的索引方案"></a>2. InnoDB中的索引方案</h5><p>InnoDB使用B+树作为索引，B+树是一棵多路的搜索树，在MySQL这棵树一般不会超过4层。由于InnoDB读写磁盘的最小单位是页，所以使用页来作为B+树的节点，也就是搜索时最多只需要访问4次IO就可以找到对应的数据页。用户记录只存在底层的叶子节点中，数据页按顺序使用链表连接起来，然后非叶子节点时一些目录项，这些目录项只包含主键和下一层所在的页号，根据这个页号就可以找到下一级节点，目录项按照主键顺序连接在一起，并使用页目录辅助进行二分查找，所以在页内查找的速度很快。</p><h5 id="3-MyISAM中的索引方案"><a href="#3-MyISAM中的索引方案" class="headerlink" title="3. MyISAM中的索引方案"></a>3. MyISAM中的索引方案</h5><p>MyISAM存储引擎建立一张表后会生成三个文件.frm、.MYI和.MYD。其中.MYD存放用户记录，.MYI存放的是索引，也就是数据和索引是分开存放的，索引中存放的是主键和行号，当进行索引查询时首先在索引中找到主键对应的行号，然后根据行号去数据文件中进行查找（类似于回表操作）</p><h5 id="4-索引分类"><a href="#4-索引分类" class="headerlink" title="4. 索引分类"></a>4. 索引分类</h5><p><strong>聚簇索引</strong></p><p>B+树的叶子节点存储了完整的用户记录，即索引和数据一起存放，在查找聚簇索引时可以直接在这棵B+树索引中找到用户记录，所以一般查询很快。InnoDB存储引擎会为主键自动创建聚簇索引，并且一张表只有一个聚簇索引。</p><p><strong>辅助索引</strong></p><p>辅助索引的叶子节点中的记录按照建索引的那个字段按序存放，但是不存储所有的用户记录，只存储建索引的那个字段和主键，在查找辅助索引时找到了待查找的字段和主键，需要使用主键去聚簇索引中继续查找，这个过程称为回表。</p><p><strong>联合索引</strong></p><p>按照多个列的顺序为多个列同时建立的索引称为联合索引。</p><h5 id="5-索引带来的额外开销"><a href="#5-索引带来的额外开销" class="headerlink" title="5. 索引带来的额外开销"></a>5. 索引带来的额外开销</h5><p>索引虽然可以极大的提高查询效率，但是却会带来其他的开销，所以不能随便建立索引，开销主要包含以下两个方面：</p><ul><li><p>空间</p><p>B+树的每个节点就是一个页，所以会带来额外的空间开销。</p></li><li><p>时间</p><p>对表中数据进行增、删、改操作时会破坏B+树的性质，所以需要调整。如果建立很多索引，每个B+树都得进行维护。</p></li></ul><h5 id="6-使用索引的条件"><a href="#6-使用索引的条件" class="headerlink" title="6. 使用索引的条件"></a>6. 使用索引的条件</h5><ul><li><p>全值匹配</p><p>如果搜索条件与索引列一致则可以利用索引进行查找，这就是全值匹配</p></li><li><p>匹配左边的列</p><p>搜索条件中有多个列，但是只有左边连续的列与索引列一样，那么也可以利用到索引，因为对多个列建联合索引的比较条件是从左边的列开始比较的</p></li><li><p>匹配列前缀</p><p>如果索引列是字符串类型，搜索条件是一个包含前缀的模糊查询可以使用到索引。因为对字符串排序是按照字典序排列的，从字符串的左边到右边依次比较的。</p></li><li><p>匹配范围值</p><p>因为索引中的每一条记录都是按照顺序使用链表连接起来的，所以只要找到两个边界就可以快速查找出边界内所有的记录</p></li><li><p>精确匹配某一列并范围匹配另外一列</p></li><li><p>用于排序</p><p>索引本身是一个有序的结构，所以可以利用索引进行排序，如果没有索引就需要在内存中重新排序，开销非常大</p></li><li><p>用于分组</p><p>所谓的分组就是按照某个列，将该列一样的记录当做一组，所以可以利用索引有序的性质，因为有序，所以列相当的记录相邻。</p></li><li><p>覆盖索引</p><p>对于辅助索引需要进行回表的操作，如果回表的次数太多了，会带来可见的代价，为了减小这个代价可以使用覆盖索引来避免回表。覆盖索引就是查询的列包含在索引中，这样就只需要找到索引的叶子结点就可以找出查询的列而不需要去聚簇索引中找到所有的列。</p></li></ul><h5 id="7-如何建立索引"><a href="#7-如何建立索引" class="headerlink" title="7. 如何建立索引"></a>7. 如何建立索引</h5><ul><li>只为用于搜索、排序、分组的列建立索引</li><li>需要考虑列的区分度，如果某个字段所有行记录中的值基本都一样，比如说性别只有男女两种，那么建立索引就没有意义</li><li>索引列的类型尽量小，这样比较的时候开销会小，查询的速度就更快</li><li>对于很长的字符串，如果对整个字符串建立索引，那么索引占用的空间会非常大，所以一般只对长字符串的前缀建立索引</li><li>索引列不能进行任何计算</li><li>对于主键应该使主键按照顺序进行自增，这样插入时可以顺序插入</li><li>索引有额外的时间和空间代价，所以不要建立冗余的索引</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之单表访问</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%8D%95%E8%A1%A8%E8%AE%BF%E9%97%AE/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%8D%95%E8%A1%A8%E8%AE%BF%E9%97%AE/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-访问方法"><a href="#1-访问方法" class="headerlink" title="1. 访问方法"></a>1. 访问方法</h5><p>在MySQL服务器中有一个查询优化器模块，一条查询语句进行语法解析后会交给查询优化器来优化，优化的结构就是生成一个所谓的执行计划，这个执行计划表明了应该使用那些所以进行查询，表之间的连接顺序是等。本文要记录的是怎么执行单表查询。对于单表查询大致可以分成三种方法：</p><ul><li><p>使用全表扫描进行查询</p></li><li><p>使用索引进行查询</p><p>索引查询有可以分为对索引进行等值查询、范围查询，对聚簇索引查询，对辅助索引查询等</p></li></ul><p>常用的访问方法有const、ref、ref_or_null、range、index、all等</p><p>首先建立如下表:</p><pre><code class="sql">CREATE TABLE single_table (    id INT NOT NULL AUTO_INCREMENT,    key1 VARCHAR(100),    key2 INT,    key3 VARCHAR(100),    key_part1 VARCHAR(100),    key_part2 VARCHAR(100),    key_part3 VARCHAR(100),    common_field VARCHAR(100),    PRIMARY KEY (id),    KEY idx_key1 (key1),    UNIQUE KEY idx_key2 (key2),    KEY idx_key3 (key3),    KEY idx_key_part(key_part1, key_part2, key_part3)) Engine=InnoDB CHARSET=utf8;</code></pre><p>在这张表中索引情况如下：</p><ul><li><p>为<code>id</code>列建立的聚簇索引。</p></li><li><p>为<code>key1</code>列建立的<code>idx_key1</code>二级索引。</p></li><li><p>为<code>key2</code>列建立的<code>idx_key2</code>二级索引，而且该索引是唯一二级索引。</p></li><li><p>为<code>key3</code>列建立的<code>idx_key3</code>二级索引。</p></li><li><p>为<code>key_part1</code>、<code>key_part2</code>、<code>key_part3</code>列建立的<code>idx_key_part</code>二级索引，这也是一个联合索引。</p></li></ul><h5 id="2-const"><a href="#2-const" class="headerlink" title="2. const"></a>2. const</h5><p>对主键或者唯一索引进行等值查询。</p><p>对主键进行等值查询</p><p><code>SELECT * FROM single_table WHERE id = 1438;</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221074308.png" alt=""></p><p>对唯一索引进行等值查询</p><p><code>SELECT * FROM single_table WHERE key2 = 3841;</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221074221.png" alt="image-20200221194007173"></p><p>const访问方法，只需要访问一次聚簇索引，或者访问一次辅助索引并进行一次回表操作，所以查询速度非常快。</p><h5 id="3-ref"><a href="#3-ref" class="headerlink" title="3. ref"></a>3. ref</h5><p>对普通的辅助索引进行等值查询</p><p><code>SELECT * FROM single_table WHERE key1 = &#39;abc&#39;;</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221075626.png" alt=""></p><p>查询的搜索条件中的字段不是唯一的所以会得到多条结果，并且每个结果都需要进行回表操作，所以速度比const慢</p><h5 id="4-ref-or-null"><a href="#4-ref-or-null" class="headerlink" title="4. ref_or_null"></a>4. ref_or_null</h5><p>查询某个辅助索引列的值等于某个常数的记录，还想把该列的值为<code>NULL</code>的记录也找出来</p><p><code>SELECT * FROM single_table WHERE key1 = &#39;abc&#39; OR key1 IS NULL;</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221080118.png" alt=""></p><h5 id="5-range"><a href="#5-range" class="headerlink" title="5. range"></a>5. range</h5><p>对索引列进行范围查找</p><p><code>SELECT * FROM single_table WHERE key2 IN (1438, 6328) OR (key2 &gt;= 38 AND key2 &lt;= 79);</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221080447.png" alt=""></p><h5 id="6-index"><a href="#6-index" class="headerlink" title="6. index"></a>6. index</h5><p>查询条件没有用到任何索引，但是查询列建有索引列，所以可以在辅助中进行全表扫描</p><p><code>SELECT key_part1, key_part2, key_part3 FROM single_table WHERE key_part2 = &#39;abc&#39;;</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200221080737.png" alt=""></p><p>由于辅助索引不存放全部的记录，所以辅助索引要比聚簇索引小的多，因此即使全表扫描也比全表扫描聚簇索引速度要快。</p><h5 id="7-all"><a href="#7-all" class="headerlink" title="7. all"></a>7. all</h5><p>对聚簇索引进行全表扫描，速度最慢。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之连接的原理</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%8E%9F%E7%90%86/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%8E%9F%E7%90%86/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-连接简介"><a href="#1-连接简介" class="headerlink" title="1. 连接简介"></a>1. 连接简介</h5><p>涉及到多表查询最常用的操作是连接操作，在MySQL中连接分成两大类分别是内连接和外连接，外连接由分为左外连接和右外连接，简称左连接和右连接。</p><p>连接的本质就是生成笛卡尔集然后从中筛选出符合条件的记录。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/join.png" alt=""></p><h5 id="2-连接的原理"><a href="#2-连接的原理" class="headerlink" title="2. 连接的原理"></a>2. 连接的原理</h5><p><strong>驱动表与被驱动表</strong></p><p>两个表左连接查询有一张表称为驱动表，另一张表是被驱动表，假设tableA是驱动表，tableB是被驱动表。连接操作如下图所示：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/join_opt.png" alt=""></p><p>由于需要多次访问被驱动表，所以可以考虑<strong>给被驱动表建立索引加快查找速度</strong></p><p><strong>join buffer</strong></p><p>join buffer是执行连接查询前申请的一块固定大小的内存，先把若干条驱动表结果集中的记录装在这个<code>join buffer</code>中，然后开始扫描被驱动表，每一条被驱动表的记录一次性和<code>join buffer</code>中的多条驱动表记录做匹配，因为匹配的过程都是在内存中完成的，所以这样可以显著减少被驱动表的<code>I/O</code>代价</p>]]></content>
       
       
       <categories>
