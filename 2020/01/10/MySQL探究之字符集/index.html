@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <title>MySQL探究之字符集 | Severin的博客</title>
+  
+  
+
+  
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- meta -->
+  
+
+  <!-- link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.10.1/css/all.min.css">
+  
+
+  
+  <link rel="shortcut icon" type='image/x-icon' href="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/favicon.ico">
+  
+
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11.26/css/style.css">
+
+  
+
+  <script>
+    function setLoadingBarProgress(num) {
+      document.getElementById('loading-bar').style.width=num+"%";
+    }
+  </script>
+
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  
+  
+  <div class="cover-wrapper">
+    <cover class='cover post half'>
+      
+        
+  <h1 class='title'>Severin</h1>
+
+
+  <div class="m_search">
+    <form name="searchform" class="form u-search-form">
+      <input type="text" class="input u-search-input" placeholder="" />
+      <i class="icon fas fa-search fa-fw"></i>
+    </form>
+  </div>
+
+<div class='menu navgation'>
+  <ul class='h-list'>
+    
+      
+        <li>
+          <a class="nav home" href="/"
+            
+            
+            id="home">
+            <i class='fas fa-rss fa-fw'></i>&nbsp;博文
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/friends/"
+            
+              rel="nofollow"
+            
+            
+            id="friends">
+            <i class='fas fa-link fa-fw'></i>&nbsp;友链
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/about/"
+            
+              rel="nofollow"
+            
+            
+            id="about">
+            <i class='fas fa-info-circle fa-fw'></i>&nbsp;关于
+          </a>
+        </li>
+      
+    
+  </ul>
+</div>
+
+      
+    </cover>
+    <header class="l_header pure">
+  <div id="loading-bar-wrapper">
+    <div id="loading-bar" class="pure"></div>
+  </div>
+
+	<div class='wrapper'>
+		<div class="nav-main container container--flex">
+      <a class="logo flat-box" href='/' >
+        
+          Severin的博客
+        
+      </a>
+			<div class='menu navgation'>
+				<ul class='h-list'>
+          
+  					
+  						<li>
+								<a class="nav flat-box" href="/"
+                  
+                  
+                  id="home">
+									<i class='fas fa-grin fa-fw'></i>&nbsp;示例
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/categories/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="categories">
+									<i class='fas fa-folder-open fa-fw'></i>&nbsp;分类
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/tags/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="tags">
+									<i class='fas fa-hashtag fa-fw'></i>&nbsp;标签
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/archives/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="archives">
+									<i class='fas fa-archive fa-fw'></i>&nbsp;归档
+								</a>
+							</li>
+      			
+      		
+				</ul>
+			</div>
+
+			
+				<div class="m_search">
+					<form name="searchform" class="form u-search-form">
+						<input type="text" class="input u-search-input" placeholder="Search" />
+						<i class="icon fas fa-search fa-fw"></i>
+					</form>
+				</div>
+			
+			<ul class='switcher h-list'>
+				
+					<li class='s-search'><a class="fas fa-search fa-fw" href='javascript:void(0)'></a></li>
+				
+				<li class='s-menu'><a class="fas fa-bars fa-fw" href='javascript:void(0)'></a></li>
+			</ul>
+		</div>
+
+		<div class='nav-sub container container--flex'>
+			<a class="logo flat-box"></a>
+			<ul class='switcher h-list'>
+				<li class='s-comment'><a class="flat-btn fas fa-comments fa-fw" href='javascript:void(0)'></a></li>
+        
+          <li class='s-toc'><a class="flat-btn fas fa-list fa-fw" href='javascript:void(0)'></a></li>
+        
+			</ul>
+		</div>
+	</div>
+</header>
+	<aside class="menu-phone">
+    <header>
+		<nav class="menu navgation">
+      <ul>
+        
+          
+            <li>
+							<a class="nav flat-box" href="/"
+                
+                
+                id="home">
+								<i class='fas fa-clock fa-fw'></i>&nbsp;近期文章
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/blog/archives/"
+                
+                  rel="nofollow"
+                
+                
+                id="blogarchives">
+								<i class='fas fa-archive fa-fw'></i>&nbsp;文章归档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/projects/"
+                
+                
+                id="projects">
+								<i class='fas fa-code-branch fa-fw'></i>&nbsp;开源项目
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/friends/"
+                
+                  rel="nofollow"
+                
+                
+                id="friends">
+								<i class='fas fa-link fa-fw'></i>&nbsp;我的友链
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="https://xaoxuu.com/wiki/material-x/"
+                
+                  rel="nofollow"
+                
+                
+                id="https:xaoxuu.comwikimaterial-x">
+								<i class='fas fa-book fa-fw'></i>&nbsp;主题文档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/about/"
+                
+                  rel="nofollow"
+                
+                
+                id="about">
+								<i class='fas fa-info-circle fa-fw'></i>&nbsp;关于小站
+							</a>
+            </li>
+          
+       
+      </ul>
+		</nav>
+    </header>
+	</aside>
+<script>setLoadingBarProgress(40);</script>
+
+  </div>
+
+
+  <div class="l_body">
+    <div class='body-wrapper'>
+      <div class='l_main'>
+  
+
+  <article id="post" class="post white-box article-type-post" itemscope itemprop="blogPost">
+    
+
+
+  <section class='meta'>
+    
+    
+    <div class="meta" id="header-meta">
+      
+        
+  
+    <h1 class="title">
+      <a href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/">
+        MySQL探究之字符集
+      </a>
+    </h1>
+  
+
+
+      
+      <div class='new-meta-box'>
+        
+          
+        
+          
+            
+  <div class='new-meta-item author'>
+    
+      <a href="https://www.severin.xyz" rel="nofollow">
+        
+          <i class="fas fa-user" aria-hidden="true"></i>
+        
+        <p>Severin</p>
+      </a>
+    
+  </div>
+
+
+          
+        
+          
+            <div class="new-meta-item date">
+  <a class='notlink'>
+    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+    <p>2020-01-10</p>
+  </a>
+</div>
+
+          
+        
+          
+            
+  
+  <div class='new-meta-item category'>
+    <a href='/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/' rel="nofollow">
+      <i class="fas fa-folder-open" aria-hidden="true"></i>
+      <p>数据库&nbsp;/&nbsp;mysql</p>
+    </a>
+  </div>
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item browse busuanzi">
+      <a class='notlink'>
+        <i class="fas fa-eye" aria-hidden="true"></i>
+        <p>
+          <span id="busuanzi_value_page_pv">
+            <i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i>
+          </span>
+        </p>
+      </a>
+    </div>
+  
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item wordcount">
+      <a class='notlink'>
+        <i class="fas fa-keyboard" aria-hidden="true"></i>
+        <p>字数统计:</p>
+        <p>1.4k字</p>
+      </a>
+    </div>
+    <div class="new-meta-item readtime">
+      <a class='notlink'>
+        <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+        <p>阅读时长≈</p>
+        <p>4分</p>
+      </a>
+    </div>
+  
+
+          
+        
+          
+            
+
+          
+        
+      </div>
+      
+        <hr>
+      
+    </div>
+  </section>
+
+
+    <section class="article typo">
+      <div class="article-entry" itemprop="articleBody">
+        <h4 id="MySQL探究之字符集"><a href="#MySQL探究之字符集" class="headerlink" title="MySQL探究之字符集"></a>MySQL探究之字符集</h4><h4 id="1-字符集"><a href="#1-字符集" class="headerlink" title="1. 字符集"></a>1. 字符集</h4><p>在计算机中数据都是以二进制形式进行存储的，字符集就是一个存储的规则，比如存储每个字母或者汉字需要存储一个怎样的二进制串，这个二进制串是唯一的。有了这个规则，我们在查看某个文本时就可以按照规则转换出来正确的符号表示。字符集的原理如下。</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/decode.png" alt=""></p>
+<p><strong>MySQL支持的字符集</strong></p>
+<p><code>show charset</code></p>
+<p>执行结果如下：</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200220070151.png" alt=""></p>
+<p>可以看到mysql支持许多字符集。下面是对常用字符集的介绍:</p>
+<ul>
+<li><p>ascii</p>
+<p>每个字符占用一个字节，最高位不使用，所以最多支持2^7=128个字符，包括字母符号（键盘上的每个键）</p>
+</li>
+<li><p>gbk</p>
+<p>支持汉字，兼容ascii，当表示ascii时占用一个字节，否则两个字节</p>
+</li>
+<li><p>utf8</p>
+<p>兼容ascii，采用边长编码。长度为1到4个字节。utf8是Unicode字符集的一种，Unicode包含了世界上所有的字符，分为utf8、utf16、utf32。utf8使用1到4个字节编码，utf16使用2到4字节，utf32使用4字节。</p>
+<p>在mysql中为了节约内存utf8分为两个版本utf8mb3和utf8mb4。其中utf8mb3是阉割版的utf8，最长只占用3字节。utf8mb4才是真正的utf8，但是mysql中的utf8是指最大长度为3字节的utf8mb3。如果要<strong>存储emoji表情，可以使用utf8mb4。</strong></p>
+</li>
+</ul>
+<h4 id="2-字符集比较规则"><a href="#2-字符集比较规则" class="headerlink" title="2. 字符集比较规则"></a>2. 字符集比较规则</h4><p>字符有很多种，如数字，汉字，英文字母，符号等。给定一堆字符串，如何进行排序，应该按照什么样的规则排序呢？所谓的排序规则就是按照这个规则可以确定一系列字符串的顺序。对于向数字，我们可以规定小的排在前面，大的排在后面，字母可以按照字典序排列，但是有的如汉字，其他国家的文字如何指定一个排序规则呢？不同的字符集有不同的排序规则，有的按照大小的逻辑关系，有的直接按照字符对应的二进制位的大小排序，有的不区分大小写，有的区分大小写。</p>
+<p><strong>查看MySQL支持的字符集比较规则</strong></p>
+<p><code>show collation</code></p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200220071542.png" alt=""></p>
+<p>比较规则的命名是有规律的</p>
+<ul>
+<li><p>比较规则名称以与其关联的字符集的名称开头。如上图的查询结果的⽐较规则名称都是以utf8开头的</p>
+</li>
+<li><p>后边紧跟着该比较规则主要作用于哪种语言，比如</p>
+<ul>
+<li>utf8_polish_ci表示以波兰语的规则比较</li>
+<li>utf8_spanish_ci是以西班牙语的规则比较</li>
+<li>utf8_general_ci是⼀种通⽤的⽐较规则。</li>
+</ul>
+</li>
+<li><p>名称后缀意味着该比较规则是否区分语言中的重音、大小写啥的，具体可以用的值如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">后缀</th>
+<th align="center">英文释义</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>_ai</code></td>
+<td align="center"><code>accent insensitive</code></td>
+<td align="center">不区分重音</td>
+</tr>
+<tr>
+<td align="center"><code>_as</code></td>
+<td align="center"><code>accent sensitive</code></td>
+<td align="center">区分重音</td>
+</tr>
+<tr>
+<td align="center"><code>_ci</code></td>
+<td align="center"><code>case insensitive</code></td>
+<td align="center">不区分大小写</td>
+</tr>
+<tr>
+<td align="center"><code>_cs</code></td>
+<td align="center"><code>case sensitive</code></td>
+<td align="center">区分大小写</td>
+</tr>
+<tr>
+<td align="center"><code>_bin</code></td>
+<td align="center"><code>binary</code></td>
+<td align="center">以二进制方式比较</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h4 id="3-MySQL各级别的字符集和比较规则"><a href="#3-MySQL各级别的字符集和比较规则" class="headerlink" title="3. MySQL各级别的字符集和比较规则"></a>3. MySQL各级别的字符集和比较规则</h4><p>mysql有四种级别的字符集和比较规则，分别是：</p>
+<ul>
+<li>服务器级别</li>
+<li>数据库级别</li>
+<li>表级别</li>
+<li>列级别</li>
+</ul>
+<p><strong>服务器级别</strong></p>
+<p><code>SHOW VARIABLES LIKE &#39;character_set_server&#39;;</code></p>
+<p><code>SHOW VARIABLES LIKE &#39;collation_server&#39;</code></p>
+<p>如果创建数据库没有指定字符集合比较规则默认使用服务器级别</p>
+<p><strong>数据库级别</strong></p>
+<p><code>SHOW VARIABLES LIKE &#39;character_set_database&#39;;</code></p>
+<p><code>SHOW VARIABLES LIKE &#39;collation_database&#39;;</code></p>
+<p>如果创建表的时候没有指定字符集和比较规则则默认使用数据库级别</p>
+<p><strong>表级别</strong></p>
+<p>设置表级别字符集和比较规则</p>
+<pre><code>CREATE TABLE 表名 (列的信息)
+    [[DEFAULT] CHARACTER SET 字符集名称]
+    [COLLATE 比较规则名称]]</code></pre><p>如果字段不指定字符集合比较规则，默认与表级别一样</p>
+<p><strong>列级别</strong></p>
+<pre><code>CREATE TABLE 表名(
+    列名 字符串类型 [CHARACTER SET 字符集名称] [COLLATE 比较规则名称],
+    其他列...
+);
+
+ALTER TABLE 表名 MODIFY 列名 字符串类型 [CHARACTER SET 字符集名称] [COLLATE 比较规则名称];</code></pre><p><strong>修改规则</strong></p>
+<p>由于字符集和比较规则是互相有联系的，如果只修改字符集，比较规则会跟着变化，如果只修改了比较规则，字符集也会跟着变化，具体规则如下：</p>
+<ul>
+<li>只修改字符集，则比较规则将变为修改后的字符集默认的比较规则。</li>
+<li>只修改比较规则，则字符集将变为修改后的比较规则对应的字符集。</li>
+</ul>
+<h4 id="4-MySQL乱码问题"><a href="#4-MySQL乱码问题" class="headerlink" title="4. MySQL乱码问题"></a>4. MySQL乱码问题</h4><p>从客户端发送sql语句通过网络传给服务器到服务器返回结果给客户端展出出来，涉及到不同的编码转换，如果说编码转换出错了，则可能出现乱码问题。MySQL服务器与编码转换有关的系统变量如下。</p>
+<table>
+<thead>
+<tr>
+<th align="center">系统变量</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>character_set_client</code></td>
+<td align="center">服务器解码请求时使用的字符集</td>
+</tr>
+<tr>
+<td align="center"><code>character_set_connection</code></td>
+<td align="center">服务器处理请求时会把请求字符串从<code>character_set_client</code>转为<code>character_set_connection</code></td>
+</tr>
+<tr>
+<td align="center"><code>character_set_results</code></td>
+<td align="center">服务器向客户端返回数据时使用的字符集</td>
+</tr>
+</tbody></table>
+<p>服务器认为客户端发送过来的数据是以<code>character_set_client</code>编码，于是会按照相同的方式解码，然后处理请求的时候会把他转换为<code>character_set_connection</code>编码，返回信息时会编码成<code>character_set_result</code>。也就是说假如客户端的编码与<code>character_set_client</code>和<code>character_set_results</code>不兼容的话就会发生乱码问题。</p>
+
+      </div>
+      
+        <br>
+        <center>感谢你对我的支持！<br><fancybox><img style="width:200px; height:200px; border-radius:50%;" src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/reward.png"/></fancybox></center>
+      
+      
+        <br>
+        
+
+
+  <section class='meta' id="footer-meta">
+    <div class='new-meta-box'>
+      
+        
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-20T19:46:41+08:00">
+  <a class='notlink'>
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <p>updated at Feb 20, 2020</p>
+  </a>
+</div>
+
+        
+      
+        
+          
+  
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>数据库</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/mysql/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>mysql</p></a></div>
+
+
+        
+      
+        
+          
+  <div class="new-meta-item share -mob-share-list">
+  <div class="-mob-share-list share-body">
+    
+      
+        <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
+          
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/&title=MySQL探究之字符集 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qq.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
+          
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/&title=MySQL探究之字符集 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qzone.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
+          
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/&title=MySQL探究之字符集 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/weibo.png">
+          
+        </a>
+      
+    
+  </div>
+</div>
+
+
+
+        
+      
+    </div>
+  </section>
+
+
+      
+      
+          <div class="prev-next">
+              
+                  <section class="prev">
+                      <span class="art-item-left">
+                          <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
+                          <h4>
+                              <a href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8BInnoDB%E5%AD%98%E5%82%A8%E9%A1%B5%E6%A0%BC%E5%BC%8F/" rel="prev" title="MySQL探究之InnoDB存储页格式">
+                                
+                                    MySQL探究之InnoDB存储页格式
+                                
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 数据库</a> <a class="tag" href="/tags/mysql/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> mysql</a> <a class="tag" href="/tags/InnoDB/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> InnoDB</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+              
+                  <section class="next">
+                      <span class="art-item-right" aria-hidden="true">
+                          <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
+                          <h4>
+                              <a href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E7%B4%A2%E5%BC%95/" rel="prev" title="MySQL探究之InnoDB索引">
+                                  
+                                      MySQL探究之InnoDB索引
+                                  
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 数据库</a> <a class="tag" href="/tags/mysql/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> mysql</a> <a class="tag" href="/tags/InnoDB/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> InnoDB</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+          </div>
+      
+    </section>
+  </article>
+
+
+
+  <!-- 显示推荐文章和评论 -->
+
+
+
+  <article class="post white-box comments">
+    <section class="article typo">
+      <h4><i class="fas fa-comments fa-fw" aria-hidden="true"></i>&nbsp;Comments</h4>
+      
+      
+      
+      
+        <section id="comments">
+          <div id="valine_container" class="valine_thread">
+            <i class="fas fa-spinner fa-spin fa-fw"></i>
+          </div>
+        </section>
+      
+    </section>
+  </article>
+
+
+
+
+
+
+<!-- 根据页面mathjax变量决定是否加载MathJax数学公式js -->
+
+
+
+  <script>
+    window.subData = {
+      title: 'MySQL探究之字符集',
+      tools: true
+    }
+  </script>
+
+
+</div>
+<aside class='l_side'>
+  
+    
+    
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              
+  <section class='widget toc-wrapper'>
+    
+<header class='pure'>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
+  
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
+  
+</header>
+
+    <div class='content pure'>
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#MySQL探究之字符集"><span class="toc-text">MySQL探究之字符集</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-字符集"><span class="toc-text">1. 字符集</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-字符集比较规则"><span class="toc-text">2. 字符集比较规则</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-MySQL各级别的字符集和比较规则"><span class="toc-text">3. MySQL各级别的字符集和比较规则</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-MySQL乱码问题"><span class="toc-text">4. MySQL乱码问题</span></a></li></ol>
+    </div>
+  </section>
+
+
+            
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+    
+
+  
+</aside>
+
+<footer id="footer" class="clearfix">
+  
+  
+    <div class="social-wrapper">
+      
+        
+          <a href="/atom.xml"
+            class="social fas fa-rss flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="mailto:807920489@qq.com"
+            class="social fas fa-envelope flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="https://github.com/mike-zeng"
+            class="social fab fa-github flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+    </div>
+  
+  <br>
+  <div><p>Blog content follows the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0) License</a></p>
+</div>
+  <div>
+    Use
+    <a href="https://xaoxuu.com/wiki/material-x/" target="_blank" class="codename">Material X</a>
+    as theme
+    
+      , 
+      total visits
+      <span id="busuanzi_value_site_pv"><i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i></span>
+      times
+    
+    . 
+  </div>
+</footer>
+<script>setLoadingBarProgress(80);</script>
+
+
+      <script>setLoadingBarProgress(60);</script>
+    </div>
+    <a class="s-top fas fa-arrow-up fa-fw" href='javascript:void(0)'></a>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+
+  <script>
+    var GOOGLE_CUSTOM_SEARCH_API_KEY = "";
+    var GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "";
+    var ALGOLIA_API_KEY = "";
+    var ALGOLIA_APP_ID = "";
+    var ALGOLIA_INDEX_NAME = "";
+    var AZURE_SERVICE_NAME = "";
+    var AZURE_INDEX_NAME = "";
+    var AZURE_QUERY_KEY = "";
+    var BAIDU_API_ID = "";
+    var SEARCH_SERVICE = "hexo" || "hexo";
+    var ROOT = "/"||"/";
+    if(!ROOT.endsWith('/'))ROOT += '/';
+  </script>
+
+<script src="//instant.page/1.2.2" type="module" integrity="sha384-2xV8M5griQmzyiY3CDqh1dn4z3llDVqZDqzjzcY+jCBCk/a5fXJmuZ/40JJAPeoU"></script>
+
+
+  <script async src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.5/dist/scrollreveal.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      const $reveal = $('.reveal');
+      if ($reveal.length === 0) return;
+      const sr = ScrollReveal({ distance: 0 });
+      sr.reveal('.reveal');
+    });
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      Waves.attach('.flat-btn', ['waves-button']);
+      Waves.attach('.float-btn', ['waves-button', 'waves-float']);
+      Waves.attach('.float-btn-light', ['waves-button', 'waves-float', 'waves-light']);
+      Waves.attach('.flat-box', ['waves-block']);
+      Waves.attach('.float-box', ['waves-block', 'waves-float']);
+      Waves.attach('.waves-image');
+      Waves.init();
+    });
+  </script>
+
+
+  <script async src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-busuanzi@2.3/js/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script type="text/javascript">
+      $(function(){
+        if ('.cover') {
+          $('.cover').backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        } else {
+          $.backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        }
+      });
+    </script>
+  
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/volantis@1.0.6/js/volantis.min.js"></script>
+
+    
+  
+  <script>
+  var GUEST_INFO = ['nick','mail','link'];
+  var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+    return GUEST_INFO.indexOf(item) > -1
+  });
+  var notify = 'true' == true;
+  var verify = 'true' == true;
+  var valine = new Valine();
+  valine.init({
+    el: '#valine_container',
+    notify: notify,
+    verify: verify,
+    guest_info: guest_info,
+    
+    appId: "03wbpQpd8dcMWzsThoJ6MPQA-gzGzoHsz",
+    appKey: "8KLQBX5uu2Reuus89jvRTphH",
+    placeholder: "快来评论吧~",
+    pageSize:'10',
+    avatar:'retro',
+    lang:'zh-cn',
+    highlight:'true'
+  })
+  </script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/app.js"></script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/search.js"></script>
+
+
+
+
+
+<!-- 复制 -->
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  let COPY_SUCCESS = "Copied";
+  let COPY_FAILURE = "Copy failed";
+  /*页面载入完成后，创建复制按钮*/
+  !function (e, t, a) {
+    /* code */
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '  <i class="fa fa-copy"></i><span>Copy</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+
+      clipboard.on('success', function(e) {
+        //您可以加入成功提示
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+        success_prompt(COPY_SUCCESS);
+        e.clearSelection();
+      });
+      clipboard.on('error', function(e) {
+        //您可以加入失败提示
+        console.error('Action:', e.action);
+        console.error('Trigger:', e.trigger);
+        fail_prompt(COPY_FAILURE);
+      });
+    }
+    initCopyCode();
+
+  }(window, document);
+
+  /**
+   * 弹出式提示框，默认1.5秒自动消失
+   * @param message 提示信息
+   * @param style 提示样式，有alert-success、alert-danger、alert-warning、alert-info
+   * @param time 消失时间
+   */
+  var prompt = function (message, style, time)
+  {
+      style = (style === undefined) ? 'alert-success' : style;
+      time = (time === undefined) ? 1500 : time*1000;
+      $('<div>')
+          .appendTo('body')
+          .addClass('alert ' + style)
+          .html(message)
+          .show()
+          .delay(time)
+          .fadeOut();
+  };
+
+  // 成功提示
+  var success_prompt = function(message, time)
+  {
+      prompt(message, 'alert-success', time);
+  };
+
+  // 失败提示
+  var fail_prompt = function(message, time)
+  {
+      prompt(message, 'alert-danger', time);
+  };
+
+  // 提醒
+  var warning_prompt = function(message, time)
+  {
+      prompt(message, 'alert-warning', time);
+  };
+
+  // 信息提示
+  var info_prompt = function(message, time)
+  {
+      prompt(message, 'alert-info', time);
+  };
+
+</script>
+
+
+<!-- fancybox -->
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+<script>
+  let LAZY_LOAD_IMAGE = "";
+  $(".article-entry").find("fancybox").find("img").each(function () {
+      var element = document.createElement("a");
+      $(element).attr("data-fancybox", "gallery");
+      $(element).attr("href", $(this).attr("src"));
+      /* 图片采用懒加载处理时,
+       * 一般图片标签内会有个属性名来存放图片的真实地址，比如 data-original,
+       * 那么此处将原本的属性名src替换为对应属性名data-original,
+       * 修改如下
+       */
+       if (LAZY_LOAD_IMAGE) {
+         $(element).attr("href", $(this).attr("data-original"));
+       }
+      $(this).wrap(element);
+  });
+</script>
+
+
+
+
+
+  <script>setLoadingBarProgress(100);</script>
+</body>
+</html>

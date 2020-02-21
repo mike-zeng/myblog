@@ -4,6 +4,45 @@
   
     
     <entry>
+      <title>MySQL探究之表空间</title>
+      <link href="/2020/02/21/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%A1%A8%E7%A9%BA%E9%97%B4/"/>
+      <url>/2020/02/21/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%A1%A8%E7%A9%BA%E9%97%B4/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>HTTPS协议</title>
+      <link href="/2020/02/18/HTTPS%E5%8D%8F%E8%AE%AE/"/>
+      <url>/2020/02/18/HTTPS%E5%8D%8F%E8%AE%AE/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Redis单机数据库的实现原理</title>
+      <link href="/2020/02/17/Redis%E5%8D%95%E6%9C%BA%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/"/>
+      <url>/2020/02/17/Redis%E5%8D%95%E6%9C%BA%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</url>
+      
+        <content type="html"><![CDATA[<h4 id="1-数据库"><a href="#1-数据库" class="headerlink" title="1. 数据库"></a>1. 数据库</h4><h5 id="1-Redis服务器的实现"><a href="#1-Redis服务器的实现" class="headerlink" title="1. Redis服务器的实现"></a>1. Redis服务器的实现</h5><pre><code class="c">struct redisServer {    redisDb *db;// 指向数据库数组表示     int dbnum;// 数据库的数量，默认16    // ... 后面还有很多参数};</code></pre><p>redisServer代表了redis服务器，里面的db指针指向数据库数组，dbnum表示当前服务器有多少个数组。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/redis_sever.png" alt=""></p><h5 id="2-数据库的切换"><a href="#2-数据库的切换" class="headerlink" title="2. 数据库的切换"></a>2. 数据库的切换</h5><p>每个redis客户端都有一个目标数据库，当客户端执行读或写命令时操作的都是目的数据库。</p><pre><code class="c">struct redisClient {    int fd;    redisDb *db;    // 还有其他字段}</code></pre><p>db指针指向当前客户端对应的目标数据库。</p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/redis_client.png" style="zoom:80%;" /><p>切换数据库时，只需要将redisClient的db指针指向相对应的数据库即可。</p><h5 id="3-redis数据库的实现"><a href="#3-redis数据库的实现" class="headerlink" title="3. redis数据库的实现"></a>3. redis数据库的实现</h5><p>Redis的数据库是一个键值对</p><pre><code class="c">struct redisDb{    dict * dict;// 就是哈希的底层结构，保存了所有的键值对}</code></pre><p>redisDb封装了一个字典，字典的键是字符串对象，字典的值是字符串对象、列表对象、集合对象、有序集合对象、哈希对象等。对键值对的增删查改就是在这个键值对空间中操作。对一个键的读取，redis服务器还会维护命中信息，lru信息等，如果发现过期还会进行删除。</p><h5 id="4-键的生存时间和过期时间的实现"><a href="#4-键的生存时间和过期时间的实现" class="headerlink" title="4. 键的生存时间和过期时间的实现"></a>4. 键的生存时间和过期时间的实现</h5><p>设置过期的时间如下：</p><ol><li><code>expire key ttl</code> 设置生存时间，单位秒</li><li><code>pexpire key ttl</code> 设置生存时间，单位毫秒</li><li><code>expireat key timestamp</code> 设置过期时间戳，单位秒</li><li><code>pexpireat key timestamp</code>设置过期时间戳，单位毫秒</li></ol><p>所有的命令都会转化成第4条命令执行。</p><p>redis数据库使用一个过期字典保存所有键的过期时间。</p><pre><code class="c">struct redisDb{    dict * dict;// 数据字典    dict * expire;//过期字典}</code></pre><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/expires.png" alt=""></p><p><strong>过期判断</strong></p><p>通过过期字典，程序可以用以下步骤检查一个给定键是否过期：检查给定键是否存在于过期字典：如果存在，那么取得键的过期时间。检查当前UNIX时间戳是否大于键的过期时间：如果是的话，那么键已经过期；否则的话，键未过期。</p><p><strong>过期删除策略</strong></p><ul><li><p>定时删除：在设置键的过期时间的同时，创建一个定时器（timer），让定时器在键的过期时间来临时，立即执行对键的删除操作。</p><p>采用定时删除，过期的数据可以被及时删除，有利于节约内存，但是定时删除需要创建定时器，因此需要消耗额外的CPU</p></li><li><p>惰性删除：放任键过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，就返回该键。</p><p>惰性删除只有在获取键的时候才会判断，虽然不会消耗额外内存，但是会导致已经过期的数据积累在内存中，导致内存的利用率降低</p></li><li><p>定期删除：每隔一段时间，程序就对数据库进行一次检查，删除里面的过期键。至于要删除多少过期键，以及要检查多少个数据库，则由算法决定。</p><p>定期删除是定时删除和惰性删除的一种折中，可以限制对CPU的影响，有避免大量的过期对象的堆积。</p></li></ul><p>在这三种策略中，第一种和第三种为主动删除策略，而第二种则为被动删除策略。Redis服务器<strong>实际使用的是惰性删除和定期删除两种策略</strong>。</p><h5 id="5-对过期键的操作"><a href="#5-对过期键的操作" class="headerlink" title="5. 对过期键的操作"></a>5. 对过期键的操作</h5><ul><li><p>定期删除</p><p>在规定的时间内分多次的去遍历服务器的各数据库，从中删除过期的键。</p></li><li><p>惰性删除</p><p>读写命令都会检查命令是否过期，如果过期返回不存在该键。</p></li><li><p>RDB过程</p><p>如果键已经过期，该键不会保存在RDB文件中，导入RDB文件时如果键已经过期则不会保存在内存中。</p></li><li><p>AOF过程</p><p>无论键是否过期都会保存到AOF文件中，如果键过期了会追加一条删除命令，AOF重写时，会把过期的命令删除。</p></li><li><p>主从复制模式</p><p>从服务不会删除过期的键，即使客户端请求一个过期的键也会返回，只有当服务器判断键过期后向从服务器显视发送一条删除命令，从服务器中的过期键才会被删除。</p></li></ul><hr><h4 id="2-RDB持久化"><a href="#2-RDB持久化" class="headerlink" title="2. RDB持久化"></a>2. RDB持久化</h4><h5 id="1-RDB介绍"><a href="#1-RDB介绍" class="headerlink" title="1. RDB介绍"></a>1. RDB介绍</h5><p>redis是一个基于内存的数据库，当服务器关机后内存的数据会消失，为了实现redis的持久化，有两种机制，RDB和AOF。RDB的基本原理是定时将内存中的数据备份到磁盘文件中。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/rdb.png" alt=""></p><h5 id="2-手动创建RDB文件的两种方式"><a href="#2-手动创建RDB文件的两种方式" class="headerlink" title="2. 手动创建RDB文件的两种方式"></a>2. 手动创建RDB文件的两种方式</h5><p><code>save</code>和<code>bgsave</code>命令是用来手动创建RDB文件。</p><ul><li>save命令执行后，会阻塞当前线程创建rdb文件直到创建完成，期间服务器不会响应任何命令</li><li>bgsave命令会先fork一个子进程然后由子进程去创建rdb文件，不会阻塞服务器</li><li>当服务器载入rdb文件时会阻塞</li></ul><h5 id="3-自动创建RDB的方式"><a href="#3-自动创建RDB的方式" class="headerlink" title="3. 自动创建RDB的方式"></a>3. 自动创建RDB的方式</h5><p>除了手动创建外，还有自动创建的方式，需要通过配置文件实现，默认是900秒内至少有一次修改或者300秒内至少有10次修改，或者60秒内至少有10000次修改就会自动创建rdb文件。服务器的内部使用savaparams来保存参数信息，还会维护一个计时器，计时器保存了距离上一次rdb一共进行了多少次修改操作。Redis的服务器周期性操作函数serverCron默认每隔100毫秒就会执行一次，该函数用于对正在运行的服务器进行维护，如果发现满足条件就会执行bgsave命令</p><h5 id="4-RDB文件结构"><a href="#4-RDB文件结构" class="headerlink" title="4. RDB文件结构"></a>4. RDB文件结构</h5><p>RDB文件的结构如下：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/redis_struction.png" alt=""></p><p>前面两个字段是用来确定这是某个版本的rdb文件，分别是REDIS魔数和redis版本号。database字段保存的是各个数据库的信息，如果数据库的个数为0，则database字段为空，eof表示rdb文件的末尾，checksum是校验和，用来判断当前rdb文件是否损坏。</p><p><strong>database结构</strong></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/rdb_database.png" alt=""></p><p>SELECTDB是一个常量表示这是一个数据库的开始，dbnumber是数据库的编号，kev_value_pairs是键值对。</p><p><strong>键值对结构</strong></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/rdb_keyvaluenoexpire.png" alt=""></p><p>上面是不带过期时间的键值对，type记录了value的类型，key是一个字符串对象，value表示值对象</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/rdb_keyvakye.png" alt=""></p><p>上面是带过期时间的键值对结构，EXPIRETIME_MS是一个常数标记这个键值对带过期时间，ms是过期的时间戳。</p><p><strong>value的结构</strong></p><hr><h4 id="3-AOF持久化"><a href="#3-AOF持久化" class="headerlink" title="3. AOF持久化"></a>3. AOF持久化</h4><h5 id="1-AOF介绍"><a href="#1-AOF介绍" class="headerlink" title="1. AOF介绍"></a>1. AOF介绍</h5><p>AOF也是一种持久化机制，与RDB持久化通过保存数据库中的键值对来记录数据库状态不同，AOF持久化是通过保存Redis服务器所执行的写命令来记录数据库状态的。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/aof.png" alt=""></p><h4 id="4-事件"><a href="#4-事件" class="headerlink" title="4. 事件"></a>4. 事件</h4><h5 id="1-事件介绍"><a href="#1-事件介绍" class="headerlink" title="1. 事件介绍"></a>1. 事件介绍</h5><p>Redis服务器是一个事件驱动程序，服务器主要处理文件事件和时间事件。</p><ul><li><p>文件事件</p><p>redis客户端与服务器通过socket进行连接，文件事件是对套接字的操作的抽象。服务器与客户端的通信会产生事件，服务器通过监听这些事件来完成网络操作。</p></li><li><p>时间事件</p><p>Redis服务器中的一些操作（比如serverCron函数）需要在给定的时间点执行，而时间事件就是服务器对这类定时操作的抽象。</p></li></ul><h5 id="2-文件事件"><a href="#2-文件事件" class="headerlink" title="2. 文件事件"></a>2. 文件事件</h5><p>redis基于reactor模式开发文件事件处理器来处理各种网络事件。文件事件处理器使用io多路复用模型通过一个线程去监听多个套接字，当被监听的套接字准备好连接，读取，写入，关闭等操作时文件事件处理器会调用与当前套接字关联的事件处理器来处理事件。</p><p>文件事件处理器由四个部分组成，分别是套接字，IO多路复用程序，文件事件分派器和事件处理器。Redis的IO多路复用程序封装了如select，poll，epoll等io多路复用函数库来实现。当套接字可读，比如客户端向套接字指向write操作，执行连接操作，执行关闭操作时产生读事件。当套接字可写时，套接字产生写事件。IO多路复用同时监听多个套接字的读写事件，如果有一个套接字产生了某个事件，IO多路复用程序会把这个事件交给文件事件分派器，文件事件分派器会选择相对应的事件处理器进行处理。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/event.png" alt=""></p><h5 id="3-时间事件"><a href="#3-时间事件" class="headerlink" title="3. 时间事件"></a>3. 时间事件</h5><p>Redis的时间事件分为定时事件和周期性事件，定时事件是在某个时间点发生，定期时间是程序每个一个后期产生一次的事件。一个时间时间主要由三个属性组成，id，when和timeProc。id是一个全局唯一的标识号，id从小到大递增，新事件的id比旧事件的id要大。when表示这个事件到达的时间，timeProc表示时间事件处理器，当时间时间达到时，服务器会调用相应的处理器来处理事件。事件处理器的返回值标识这个事件的类型，如果时定时事件，那么这个事件会被删除，如果时定期事件，会更新when属性。</p><p>redis将所有的时间时间都放在一个无需链表中，每当时间时间执行器运行时会遍历整个链表，查找已经到达的时间事件，然后调用响应的事件处理器。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/timeevent.png" alt=""></p><h5 id="4-事件调度"><a href="#4-事件调度" class="headerlink" title="4. 事件调度"></a>4. 事件调度</h5><p>因为服务器中同时存在文件事件和时间事件两种事件类型，所以服务器必须对这两种事件进行调度，决定何时应该处理文件事件，何时又应该处理时间事件，以及花多少时间来处理它们等等。</p><p>从事件处理的角度来看，Redis服务器的运行流程如下：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/eventloop.png" alt=""></p><hr><h4 id="5-客户端"><a href="#5-客户端" class="headerlink" title="5. 客户端"></a>5. 客户端</h4><h5 id="1-客户端介绍"><a href="#1-客户端介绍" class="headerlink" title="1. 客户端介绍"></a>1. 客户端介绍</h5><p>对于每个与服务器进行连接的客户端，服务器都为这些客户端建立了相应的redis.h/redisClient结构，这个结构保存了客户端当前的状态信息，以及执行相关功能时需要用到的数据结构。表示redis服务器的数据结构redisServer有一个成员为clients的链表，用来维护所有与服务器连接的客户端。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/Redis%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/redisclient.png" alt=""></p><h5 id="2-客户端常用属性"><a href="#2-客户端常用属性" class="headerlink" title="2. 客户端常用属性"></a>2. 客户端常用属性</h5><ul><li><p>套接字描述符</p><p>客户端状态的fd属性记录了客户端正在使用的套接字描述符，如果是伪客户端，这个值为-1</p></li><li><p>名字</p><p>默认情况下，没有名字，可以通过<code>client setname 名字</code>设置名字</p></li><li><p>标志</p><p>客户端的标志属性flags记录了客户端的角色（role），以及客户端目前所处的状态</p></li><li><p>输入缓冲区</p><p>客户端状态的输入缓冲区用于保存客户端发送的命令请求</p></li><li><p>命令与命令参数</p><p>在服务器将客户端发送的命令请求保存到客户端状态的输入缓冲区属性之后，服务器将对命令请求的内容进行分析，并将得出的命令参数以及命令参数的个数分别保存到客户端状态的argv属性和argc属性</p></li><li><p>命令表</p><p>当服务器从协议内容中分析并得出argv属性和argc属性的值之后，服务器将根据项argv[0]的值，在命令表中查找命令所对应的命令实现函数</p></li><li><p>输出缓冲区</p><p>执行命令所得的命令回复会被保存在客户端状态的输出缓冲区里面，每个客户端都有两个输出缓冲区可用，一个缓冲区的大小是固定的，另一个缓冲区的大小是可变的</p><ul><li>固定大小的缓冲区用于保存那些长度比较小的回复，比如OK、简短的字符串值、整数值、错误回复等等。</li><li>可变大小的缓冲区用于保存那些长度比较大的回复，比如一个非常长的字符串值，一个由很多项组成的列表，一个包含了很多元素的集合等等。</li></ul><p>固定缓冲区使用char数组和一个下标实现，可变缓冲区使用链表来链接所有的字符串对象</p></li><li><p>身份验证</p><p>客户端状态的authenticated属性用于记录客户端是否通过了身份验证，如果该值为0表示未通过身份认证，为1表示客户端已通过身份认证，当客户端authenticated属性的值为0时，除了AUTH命令之外，客户端发送的所有其他命令都会被服务器拒绝执行，authenticated属性仅在服务器启用了身份验证功能时使用。</p></li><li><p>时间</p><pre><code class="c">typedef struct redisClient{    time_t ctime;    time_t lastinteraction;    time_t obuf_soft_limit_reached_time}redisClient;</code></pre><p>ctime记录了创建客户端的时间</p><p>lastinteraction属性记录了客户端与服务器最后一次进行互动（interaction）的时间</p><p>obuf_soft_limit_reached_time属性记录了输出缓冲区第一次到达软性限制（soft limit）的时间</p></li></ul><h5 id="3-客户端的操作"><a href="#3-客户端的操作" class="headerlink" title="3. 客户端的操作"></a>3. 客户端的操作</h5><ul><li><p>创建客户端</p><p>如果客户端是通过网络连接与服务器进行连接的普通客户端，那么在客户端使用connect函数连接到服务器时，服务器就会调用连接事件处理器，为客户端创建相应的客户端状态，并将这个新的客户端状态添加到服务器状态结构clients链表的末尾</p></li><li><p>关闭客户端</p><p>关闭客户端的原因有很多，如：</p><ol><li>客户端进程退出或者被杀死</li><li>客户端向服务器发送了带有不符合协议格式的命令请求</li><li>客户端成为了CLIENT KILL命令的目标</li><li>用户为服务器设置了timeout配置选项，那么当客户端的空转时间超过timeout选项设置的值时，客户端将被关闭</li><li>客户端发送的命令请求的大小超过了输入缓冲区的限制大小（默认为1 GB）</li><li>发送给客户端的命令回复的大小超过了输出缓冲区的限制大小，那么这个客户端会被服务器关闭</li></ol><p>客户端输出缓冲区有两种模式限制</p><ul><li><p>硬性限制</p><p>如果输出缓冲区的大小超过了硬性限制所设置的大小，那么服务器立即关闭客户端</p></li><li><p>软性限制</p><p>如果输出缓冲区的大小超过了软性限制所设置的大小，但还没超过硬性限制，那么服务器将使用客户端状态结构的obuf_soft_limit_reached_time属性记录下客户端到达软性限制的起始时间；之后服务器会继续监视客户端，如果输出缓冲区的大小一直超出软性限制，并且持续时间超过服务器设定的时长，那么服务器将关闭客户端；相反地，如果输出缓冲区的大小在指定时间之内，不再超出软性限制，那么客户端就不会被关闭，并且obuf_soft_limit_reached_time属性的值也会被清零</p></li></ul></li></ul><hr><h4 id="6-服务器"><a href="#6-服务器" class="headerlink" title="6. 服务器"></a>6. 服务器</h4><h5 id="1-命令请求的执行过程"><a href="#1-命令请求的执行过程" class="headerlink" title="1. 命令请求的执行过程"></a>1. 命令请求的执行过程</h5><ul><li><p>发送命令请求</p><p>Redis服务器的命令请求来自Redis客户端，当用户在客户端中键入一个命令请求时，客户端会将这个命令请求转换成协议格式，然后通过连接到服务器的套接字，将协议格式的命令请求发送给服务器</p></li><li><p>读取命令请求</p><p>当客户端与服务器之间的连接套接字因为客户端的写入而变得可读时，服务器会读取套接字中协议格式的命令请求，并将其保存到客户端状态的输入缓冲区里面。对输入缓冲区中的命令请求进行分析，提取出命令请求中包含的命令参数，以及命令参数的个数，然后分别将参数和参数个数保存到客户端状态的argv属性和argc属性里面，最后调用命令执行器，执行客户端指定的命令。</p></li></ul><p><strong>命令执行器的实现</strong></p><p>据客户端状态的argv[0]参数，在命令表中查找参数所指定的命令，并将找到的命令保存到客户端状态的cmd属性里面。然后在执行命令之前会对参数进行检测以及身份认证的检测，之后调用命令函数执行命令，最后服务器还会执行一些后续操作如AOF。</p><p>命令实现函数会将命令回复保存到客户端的输出缓冲区里面，并为客户端的套接字关联命令回复处理器，当客户端套接字变为可写状态时，服务器就会执行命令回复处理器，将保存在客户端输出缓冲区中的命令回复发送给客户端。客户端收到回复后会打印出来。</p><h5 id="2-severCron函数"><a href="#2-severCron函数" class="headerlink" title="2. severCron函数"></a>2. severCron函数</h5><p>Redis服务器中的serverCron函数默认每隔100毫秒执行一次，这个函数负责管理服务器的资源，并保持服务器自身的良好运转。</p><ul><li><p>更新服务器时间缓存</p><p>Redis服务器中有不少功能需要获取系统的当前时间，而每次获取系统的当前时间都需要执行一次系统调用，为了减少系统调用的执行次数，服务器状态中的unixtime属性和mstime属性被用作当前时间的缓存：unixtime保存了秒级精度的系统当前unix时间戳，mstime保存了毫秒精度的系统当前unix时间戳。注意这些时间是不精确的，只能用在对时间精度要求不高的应用上</p></li><li><p>更新LRU时钟</p><p>服务器状态中的lruclock属性保存了服务器的LRU时钟，这个属性和上面介绍的unixtime属性、mstime属性一样，都是服务器时间缓存的一种。当服务器要计算一个数据库键的空转时间，程序会用服务器的lruclock属性记录的时间减去对象的lru属性记录的时间，得出的计算结果就是这个对象的空转时间</p></li><li><p>更新服务器每秒执行命令次数</p></li><li><p>更新服务器内存峰值记录</p></li><li><p>处理sigtem信号</p></li><li><p>管理客户端资源</p></li><li><p>管理数据库资源</p></li><li><p>执行被延迟的bgrewriteraof</p><p>在服务器执行BGSAVE命令的期间，如果客户端向服务器发来BGREWRITEAOF命令，那么服务器会将BGREWRITEAOF命令的执行时间延迟到BGSAVE命令执行完毕之后。</p></li><li><p>检查持久化操作的运行状态</p></li><li><p>将AOF缓冲区的内容写入AOF文件</p></li><li><p>关闭异步客户端</p></li><li><p>增加cronloops计数器的值</p></li></ul><h5 id="3-初始化服务器"><a href="#3-初始化服务器" class="headerlink" title="3. 初始化服务器"></a>3. 初始化服务器</h5><p>一个Redis服务器从启动到能够接受客户端的命令请求，需要经过一系列的初始化和设置过程，比如初始化服务器状态，接受用户指定的服务器配置，创建相应的数据结构和网络连接等等。</p><ul><li>初始化服务器状态结构</li><li>载入配置选项</li><li>初始化服务器数据结构</li><li>还原数据库状态</li><li>执行事件循环</li></ul>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Redis底层数据结构实现原理与源码分析</title>
       <link href="/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
       <url>/2020/02/10/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</url>
@@ -66,6 +105,188 @@
         <content type="html"><![CDATA[<h5 id="1-连接超时问题"><a href="#1-连接超时问题" class="headerlink" title="1. 连接超时问题"></a>1. 连接超时问题</h5><p>首先使用<code>telnet</code>命令对一个不存在的ip或端口进行测试，同时使用抓包工具抓包。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201165627.png" alt=""></p><p>抓包数据</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201165935.png" alt=""></p><p>分析结果</p><p>可以看到时间的变化近似为1、2、4、8、16，即第一个报文发送后隔了1秒发送，然后隔了2秒发送，然后隔了4秒发送，最后隔了8秒发送。可以看出TCP连接建立超时后采用指数退避的方式重新发送连接请求报文。</p><h5 id="2-TCP的连接释放"><a href="#2-TCP的连接释放" class="headerlink" title="2. TCP的连接释放"></a>2. TCP的连接释放</h5><p>理论告诉我们TCP的连接释放需要经过三次握手和四次挥手，我们基于这个理论进行探究，看是否可以使用抓包工具抓到七个这样的报文。</p><p>三次握手：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image-20200201170702.png" alt=""></p><p>四次挥手：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/image20200201170858.png" alt=""></p><p>其中第1,2,3,6这几个报文是四次挥手报文</p>]]></content>
       
       
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Linux五种IO模型与Java三种IO模型</title>
+      <link href="/2020/01/10/Linux%E4%BA%94%E7%A7%8DIO%E6%A8%A1%E5%9E%8B%E4%B8%8EJava%E4%B8%89%E7%A7%8DIO%E6%A8%A1%E5%9E%8B/"/>
+      <url>/2020/01/10/Linux%E4%BA%94%E7%A7%8DIO%E6%A8%A1%E5%9E%8B%E4%B8%8EJava%E4%B8%89%E7%A7%8DIO%E6%A8%A1%E5%9E%8B/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-一次IO操作的分析"><a href="#1-一次IO操作的分析" class="headerlink" title="1. 一次IO操作的分析"></a>1. 一次IO操作的分析</h5><p>所谓的IO操作是指对除了寄存器和内存以外的设备进行读写请求，如文件、网络、键盘等，站在用户的角度来看就是调用一次IO系统调用。对于一次读操作具体过程如下：</p><ul><li>用户进程发起IO系统调用从用户态进入内核态完成上下文切换，内核中存在一个内核缓冲区，读或写时都是将数据从内核缓冲区拷贝到进程缓冲区中</li><li>内核不会直接使用CPU去操作数据，而是发送操作指令给DMA，DMA完成数据的读写后会通过总线发送一个系统中断给内核。</li><li>数据从外存拷贝到内核缓冲区后，再由内核将内核缓冲区中的数据拷贝到进程缓冲区中，之后切换到用户态，完成系统调用，这样用户进程就得到了数据</li></ul><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/io.png" alt=""></p><hr><h5 id="2-Linux的五种IO模型"><a href="#2-Linux的五种IO模型" class="headerlink" title="2. Linux的五种IO模型"></a>2. Linux的五种IO模型</h5><p>Linux有五种IO模型，分别是同步阻塞、同步非阻塞、IO多路复用、信号驱动、异步IO模型</p><p><strong>同步阻塞</strong></p><p>发出IO系统调用后，内核会通知DMA准备数据，这个过程有两个特点，第一是不占用CPU，第二是需要一定的时间，同步阻塞就是指发出IO系统调用后，用户进程会进入阻塞状态等待内核缓存区数据准备好后，直到数据从内核缓冲区复制到应用进程缓冲区中才返回</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/syn_block.png" alt=""></p><p><strong>同步非阻塞</strong></p><p>同步阻塞的问题在于只要内核没有准备好数据，那么就会进入阻塞状态而不同完成其他操作，同步非阻塞则是采用询问的方式<strong>不断的从用户态进入内核态询问数据</strong>是否准备好。其有点是不需要阻塞，但是缺点是需要多次系统调用询问。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/syn_nonblock.png" alt=""></p><p><strong>IO多路复用</strong></p><p>同步阻塞和同步非阻塞每次从用户态进入内核态都只能得到一次IO的情况，如果有多个IO操作，那么就需要使用多个线程才能同时完成。IO多路复用模型是在一个线程中处理多个IO请求的模型。如select/poll/epoll等函数就是IO多路复用函数。可以向IO多路复用函数中注册多个文件描述符，然后交给内核去监控每个文件描述符是否有对应的IO事件产生，如果有则从内核态回到用户态，然后用户态进程会找到有IO事件产生的文件描述符然后进行处理。</p><p><strong>信号驱动模型</strong></p><p>应用进程使用系统调用，内核立即返回，应用进程可以继续执行，也就是说等待数据阶段应用进程是非阻塞的。内核在数据到达时向应用进程发送 信号，应用进程收到之后在信号处理程序中将数据从内核复制到应用进程中。相比于非阻塞式 I/O 的轮询方式，减少了轮询过程中系统调用的开销，信号驱动 I/O 的 CPU 利用率更高。</p><p><strong>异步IO模型</strong></p><p>应用进程执行系统调用会立即返回，应用进程可以继续执行，不会被阻塞，内核会在所有操作完成之后向应用进程发送信号。异步 I/O 与信号驱动 I/O 的区别在于，异步 I/O 的信号是在内核数据拷贝到进程缓冲区后通知应用进程 I/O 完成，而信号驱动 I/O 的信号是通知应用进程内核数据准备好了。</p><hr><h5 id="3-IO多路复用"><a href="#3-IO多路复用" class="headerlink" title="3. IO多路复用"></a>3. IO多路复用</h5><p>linux中主要由三种io多路复用函数，分别是select，poll和epoll。按照时间顺序，select是出现的最早的IO多路复用函数，其次是poll，最后是epoll。同样后出现的性能要比先出现的好。</p><ul><li><p>select</p><p>select的函数原型有五个参数，第一个参数是最大的文件描述符加1，接下来三个参数都是fd_set类型，分别表示需要被监控的读、写和异常事件的文件描述符集合，最后一个参数是超时时间，超时时间有两个成员一个是代表超时时间为秒一个为微秒。fd_set的底层是一个长度为1024位的bitmap，每一位表示一个文件描述符的状态，所以select最多支持监控1024个文件描述符。每次调用select会把文件描述符集合拷贝到内核，然后遍历文件描述符集合为每一个文件描述符申请一个等待队列元素，然后将其添加到对应驱动程序的等待队列中，等待条件满足时唤醒。唤醒后再次遍历所有的文件描述符得到一个掩码，根据这个页码设置每一个文件描述符的状态，最后将结果拷贝到用户空间。用户进程等select函数返回后重新遍历所有的文件描述符，判断文件描述符是否在fd_set中，如果是则需要进行下一步操作。</p><p>select的缺点是只支持1024个文件描述符，另外select比较慢，优点是跨平台，简单。</p><p><strong>select慢的原因</strong></p><ul><li>第一次调用select，内核需要遍历所有的文件描述符并把进程挂在所监听的文件描述符一次</li><li>有事件到来时，不知道是哪些文件描述符有数据可以读写，需要把所有的文件描述符都轮询一遍才能知道</li><li>通知用户进程还需要把整个bitmap复制到用户空间，由用户进程再次遍历查询出可读写的文件描述符</li></ul></li><li><p>poll</p><p>poll与select的区别在于不使用bitmap来表示文件描述符，因此理论上poll监控的文件描述符是没有限制的。poll函数要求传入一个pollfd数组，数组元素包含三个成员，分别是文件描述符，需要监控的事件，实际发生的事件。系统调用会将该数组拷贝到内核空间，然后遍历每一个文件描述符对应的驱动程序的poll函数，申请一个等待队列元素，将其添加到驱动程序的等待队列中，然后睡眠，直到驱动程序将其唤醒，再遍历每一个文件描述符对应的驱动程序的poll函数，得到一个掩码，再将结果拷贝回用户空间。</p><p><strong>poll与select的区别</strong></p><ul><li>poll不限制监控的文件描述符数量</li><li>poll与select描述文件描述符的方式不同，select使用掩码的方式，更节约内存，poll使用数组</li></ul></li><li><p>epoll</p><p>epoll是select/poll的增强版，使用epoll时首先需要创建一个 eventpoll 对象，这个对象的底层使用红黑树实现，然后把需要监控的对象插入到 eventpoll对象中，然后用户进程调用 epoll_wait函数，这个函数会把当前进程添加到eventpoll对象的等待队列中。当被监控的对象有事件发生时，中断程序会将该对象的引用放到 eventpoll对象的就绪列表中，然后 eventpoll对象的等待队列中的进程会被唤醒，唤醒后就可以直接从就绪队列中拿到发生事件的对象所对应的文件描述符。</p><p><strong>为什么epoll高效</strong></p><ul><li>epoll不需要每次都把文件描述符集合从用户空间复制到内核空间</li><li>epoll不需要向select/poll那样主动的轮询每一个文件描述符，而是为文件描述符指定回调函数，当事件触发时会将对应的fd加入就绪队列然后唤醒等待的进程</li><li>epoll返回后用户进程可以从就绪列表中获取所有就绪的事件而不需要向select和poll那样重新遍历一遍</li></ul></li></ul><hr><h5 id="4-java中的三种IO模型"><a href="#4-java中的三种IO模型" class="headerlink" title="4. java中的三种IO模型"></a>4. java中的三种IO模型</h5><ul><li><p>BIO</p><p>BIO对应的是同步阻塞IO模型</p></li><li><p>NIO</p><p>NIO对应的是IO多路复用模型，Selector就是对底层IO多路复用函数的封装，底层实现是epoll。</p></li><li><p>AIO</p><p>AIO对应的是异步IO模型</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> java </category>
+          
+          <category> io </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> java </tag>
+            
+            <tag> io </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之InnoDB存储行格式</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8BInnoDB%E5%AD%98%E5%82%A8%E8%A1%8C%E6%A0%BC%E5%BC%8F/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8BInnoDB%E5%AD%98%E5%82%A8%E8%A1%8C%E6%A0%BC%E5%BC%8F/</url>
+      
+        <content type="html"><![CDATA[<h4 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h4><p>MySQL关于存储的任务是交给存储引擎来做的，存储引擎最终把数据存放才磁盘中，为了方便管理和理解，存储引擎定义了不同的概念，以InnoDB存储引擎为例。InnnoDB每一个表对应一个文件，称为表空间，表分成若干个段，一个段又包含若干个的区，一个区包含若干个页，InnoDB的页的默认大小是16k，每次将数据从磁盘读取到内存都是以页为最小单位，然后页中存放着许多行，行按照一定的格式存放。</p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/struct.png" style="zoom: 67%;" /><hr><h4 id="2-InnoDB存储引擎行格式"><a href="#2-InnoDB存储引擎行格式" class="headerlink" title="2. InnoDB存储引擎行格式"></a>2. InnoDB存储引擎行格式</h4><p>InnoDB存储引擎支持的行格式有四种：Compact、Redundant、Dynamic、Compress</p><hr><h4 id="3-Compact"><a href="#3-Compact" class="headerlink" title="3. Compact"></a>3. Compact</h4><p>Compact的结构如下所示</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/compact.png" alt=""></p><ul><li><p>变长长度列表</p><p>MySQL支持一些变长数据类型，比如<code>varchar</code>，这种数据类型占用的内存空间是不定的，所以需要额外的信息来说明变长数据实际占了多少字节。</p><p>变长长度列表采用逆序的方式存放了行记录中变长数据的长度。注意如果该表没有变长字段，这个列表是不存在的。</p><p>对于char类型的数据，如果采用变长编码则会加入到变长长度列表，否则不会。</p></li><li><p>NULL值列表</p><p>Compact的中文意思是紧凑的，正如其名字一样，这种格式的特点就是尽量少占用内存空间。而对于某种数据类型，如果这个字段为null，那么其实没有必要为其开辟内存空间，只需要记下来这个位置为null就可以了。</p><p>对于一张表，InnoDB会把所有的可能为null的字段映射到一个bit位中，如果该位为1说明这个字段为null。注意NULL值列表也是逆序的并且占用整数倍字节。</p></li><li><p>记录头信息</p><p>记录头信息包含的信息很多，主要是用来描述当前行的状态的，比如是否被删除了，上一条记录的位置，下一条记录在位置，是否B+树索引的叶子节点等信息。</p></li><li><p>列信息</p><p>保存真实的数据，每一个字段的数据按顺序排放，但是会添加三个隐藏列。分别是行号、事务id、回滚指针等</p></li></ul><p><strong>对行溢出的处理</strong></p><p>假设某一行的数据比整个页的最大容量还大就会发生溢出，对于溢出的处理如下：</p><p>对于溢出数据，当前行只会存储数据的一小部分，其他数据放在其他页上，然后用一个20字节的指针指向溢出的数据。</p><hr><h4 id="4-Redundant"><a href="#4-Redundant" class="headerlink" title="4. Redundant"></a>4. Redundant</h4><p>redundant的中文意思是紧凑的</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/redundant.png" alt=""></p><ul><li><p>字段长度偏移列表</p><p>字段长度偏移列表逆序存放了每一个字段的开始的位置，这样就可以在真实的列数据中找到每一行数据</p></li><li><p>记录头信息</p><p>类似于Compact格式</p></li><li><p>列信息</p><p>保存每一列的数据，注意null值也会占用全部的内存。对于char(M)类型，占用字符集最大长度乘以M</p></li></ul><hr><h4 id="5-Dynamic"><a href="#5-Dynamic" class="headerlink" title="5. Dynamic"></a>5. Dynamic</h4><p>与Compact格式类似，只是在处理溢出数据时会把所有的溢出数据存在其他页，当前行保存溢出页的地址</p><hr><h4 id="6-Compress"><a href="#6-Compress" class="headerlink" title="6. Compress"></a>6. Compress</h4><p>与Dynamic类似，不同点在于会对数据进行压缩从而节省空间</p><hr><h4 id="7-实践"><a href="#7-实践" class="headerlink" title="7. 实践"></a>7. 实践</h4><p>设置和修改表的行格式语句如下：</p><p><code>CREATE TABLE 表名 (列的信息) ROW_FORMAT=行格式名称</code></p><p><code>ALTER TABLE 表名 ROW_FORMAT=行格式名称</code></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之数据目录</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%9B%AE%E5%BD%95/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-数据库与文件系统的关系"><a href="#1-数据库与文件系统的关系" class="headerlink" title="1. 数据库与文件系统的关系"></a>1. 数据库与文件系统的关系</h5><p>基于磁盘的数据库都是将数据存储在磁盘的文件系统时，当需要读取数据时从文件系统中读出数据返回给用户，写入数据时，存储引擎会将数据写入磁盘。</p><h5 id="2-MySQL数据目录"><a href="#2-MySQL数据目录" class="headerlink" title="2. MySQL数据目录"></a>2. MySQL数据目录</h5><p><strong>查看数据目录</strong></p><p><code>show variables like &#39;datadir&#39;</code></p><p>MySQL所有的数据都存放在这个目录中</p><p><strong>数据目录的结构</strong></p><p>对于每一个<code>database</code>都会在数据目录中创建一个同名的子目录</p><p><strong>表在文件系统中的表示</strong></p><p>每个表由表结构的定义和表中的数据组成，会在数据库对应的目录中生成<code>.frm</code>文件</p><p><strong>InnoDB如何存储表数据的</strong></p><p>对于InnoDB来说以页为基本单位来管理存储空间，默认大小为16kb。InnoDB将页存放在表空间中，表空间有两种一种是系统表空间，一种是独立表空间。</p><ul><li><p>系统表空间</p><p>系统表空间对应的文件是数据库中的<code>ibdata1</code>，在MySQL5.6之前表中的所有数据都会被默认存储到这个系统表空间中</p></li><li><p>独立表空间</p><p>在MySQL5.6之后，InnoDB会为每一个表建立一个独立的表空间，扩展名为<code>表名.ibd</code>，独立表空间存放表的数据和索引</p></li></ul><p><strong>MyISAM如何存储表数据</strong></p><p>每个表对应三个文件<code>表名.frm</code>、<code>表名.MYD</code>、<code>表名.MYI</code>。</p><p><code>表名.frm</code>表示表结构文件。<code>表名.MYD</code>表示数据文件；<code>表名.MYI</code>表示索引文件</p><p><strong>视图在文件系统中的表示</strong></p><p>视图是虚拟的表不需要存放数据，只需要把他的结构存储起来就行了，和<code>表</code>一样，描述视图结构的文件也会被存储到所属数据库对应的子目录下边，只会存储一个<code>视图名.frm</code>的文件。</p><h5 id="3-MySQL系统数据库"><a href="#3-MySQL系统数据库" class="headerlink" title="3. MySQL系统数据库"></a>3. MySQL系统数据库</h5><ul><li><p><code>mysql</code></p><p>这个数据库贼核心，它存储了MySQL的用户账户和权限信息，一些存储过程、事件的定义信息，一些运行过程中产生的日志信息，一些帮助信息以及时区信息等。</p></li><li><p><code>information_schema</code></p><p>这个数据库保存着MySQL服务器维护的所有其他数据库的信息，比如有哪些表、哪些视图、哪些触发器、哪些列、哪些索引吧啦吧啦。这些信息并不是真实的用户数据，而是一些描述性信息，有时候也称之为元数据。</p></li><li><p><code>performance_schema</code></p><p>这个数据库里主要保存MySQL服务器运行过程中的一些状态信息，算是对MySQL服务器的一个性能监控。包括统计最近执行了哪些语句，在执行过程的每个阶段都花费了多长时间，内存的使用情况等等信息。</p></li><li><p><code>sys</code></p><p>这个数据库主要是通过视图的形式把<code>information_schema</code>和<code>performance_schema</code>结合起来，让程序员可以更方便的了解MySQL服务器的一些性能信息。</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之InnoDB存储页格式</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8BInnoDB%E5%AD%98%E5%82%A8%E9%A1%B5%E6%A0%BC%E5%BC%8F/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8BInnoDB%E5%AD%98%E5%82%A8%E9%A1%B5%E6%A0%BC%E5%BC%8F/</url>
+      
+        <content type="html"><![CDATA[<h4 id="1-页格式简介"><a href="#1-页格式简介" class="headerlink" title="1. 页格式简介"></a>1. 页格式简介</h4><p>页是InnoDB从磁盘中存取的最小单位，默认大小为16kb，可以用来存放数据、索引、日志等信息。数据页的格式如下：</p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/page_struct.png" style="zoom:50%;" /><ul><li><p>File Header</p><p>存放页的一些通用信息</p></li><li><p>Page Header</p><p>存放数据页专有的信息</p></li><li><p>Infimum和supremum</p><p>这是两个虚拟的行记录</p></li><li><p>User Records</p><p>用户行记录</p></li><li><p>Free Space</p><p>空闲空间</p></li><li><p>Page Directory</p><p>页目录</p></li><li><p>File Tailer</p><p>用来校验页是否完整</p></li></ul><h4 id="2-页如何管理记录"><a href="#2-页如何管理记录" class="headerlink" title="2. 页如何管理记录"></a>2. 页如何管理记录</h4><p>向页中插入一条记录，会从Free Space中申请一定的空间存放记录，插入的记录就位于User Records。页中的多条记录按照主键的大小（一定会有一个主键，如果不存在则由第一个唯一索引字段当做主键，否则自动生成row_id充当主键）排序，使用记录头中的信息描述每一条记录的下一条记录的位置，也就是说页中的记录会构成一个链表。而页中的两个虚拟行记录Infimum和supremum则相当于头结点和尾节点。如图所示：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/link_record.png" alt=""></p><h4 id="3-如何在页内查找记录"><a href="#3-如何在页内查找记录" class="headerlink" title="3. 如何在页内查找记录"></a>3. 如何在页内查找记录</h4><p>存储引擎存放数据处理要考虑内存占用问题还要定义查找方法，如何查才能查找的更快呢？假设已经知道待查找的记录在某一页，并且这一页已经读取到内存中，如何进行查找呢？由于记录组织成一个链表结构，那么查找的时间复杂度是O(N)，显然这是不能接受的，因此页内定义了一个叫做页目录的东西，解决页内查找的方案如下：</p><p>页中的记录是按照主键大小顺序存放的，但是每条记录占用的内存空间不是连续的所以不能使用二分查找来加速查找。但是可以借助一种中间结果来实现二分查找，这就是页目录。页目录由不同的连续的槽构成，将记录链表分成不同的连续的组。将每个组的最后一条记录的地址偏移量单独提取出来按顺序存储到页目录作为槽。这样在查找的过程中首先在页目录中进行二分查找找出对应的组，然后在组里顺序查找到记录。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/page_find.png" alt=""></p><h4 id="4-页面头部"><a href="#4-页面头部" class="headerlink" title="4. 页面头部"></a>4. 页面头部</h4><p>主要存放页中已经存储了多少条记录，第一条记录的地址是什么，页目录中存储了多少个槽等信息</p><h4 id="5-File-Header"><a href="#5-File-Header" class="headerlink" title="5. File Header"></a>5. File Header</h4><p><code>File Header</code>针对各种类型的页都通用，也就是说不同类型的页都会以<code>File Header</code>作为第一个组成部分，它描述了一些针对各种页都通用的一些信息，比方说这个页的编号是多少，它的上一个页、下一个页是谁</p><h4 id="6-File-Trailer"><a href="#6-File-Trailer" class="headerlink" title="6. File Trailer"></a>6. File Trailer</h4><p>当页在内存中被修改就成为了脏页，可以通过该部分来判断，File Trailer主要包括两部分，一部分是校验和，通过校验和就可以知道页是否被修改过，还有一部分是最后修改时对应的日志序列位置（LSN）</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之字符集</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86/</url>
+      
+        <content type="html"><![CDATA[<h4 id="MySQL探究之字符集"><a href="#MySQL探究之字符集" class="headerlink" title="MySQL探究之字符集"></a>MySQL探究之字符集</h4><h4 id="1-字符集"><a href="#1-字符集" class="headerlink" title="1. 字符集"></a>1. 字符集</h4><p>在计算机中数据都是以二进制形式进行存储的，字符集就是一个存储的规则，比如存储每个字母或者汉字需要存储一个怎样的二进制串，这个二进制串是唯一的。有了这个规则，我们在查看某个文本时就可以按照规则转换出来正确的符号表示。字符集的原理如下。</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/decode.png" alt=""></p><p><strong>MySQL支持的字符集</strong></p><p><code>show charset</code></p><p>执行结果如下：</p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200220070151.png" alt=""></p><p>可以看到mysql支持许多字符集。下面是对常用字符集的介绍:</p><ul><li><p>ascii</p><p>每个字符占用一个字节，最高位不使用，所以最多支持2^7=128个字符，包括字母符号（键盘上的每个键）</p></li><li><p>gbk</p><p>支持汉字，兼容ascii，当表示ascii时占用一个字节，否则两个字节</p></li><li><p>utf8</p><p>兼容ascii，采用边长编码。长度为1到4个字节。utf8是Unicode字符集的一种，Unicode包含了世界上所有的字符，分为utf8、utf16、utf32。utf8使用1到4个字节编码，utf16使用2到4字节，utf32使用4字节。</p><p>在mysql中为了节约内存utf8分为两个版本utf8mb3和utf8mb4。其中utf8mb3是阉割版的utf8，最长只占用3字节。utf8mb4才是真正的utf8，但是mysql中的utf8是指最大长度为3字节的utf8mb3。如果要<strong>存储emoji表情，可以使用utf8mb4。</strong></p></li></ul><h4 id="2-字符集比较规则"><a href="#2-字符集比较规则" class="headerlink" title="2. 字符集比较规则"></a>2. 字符集比较规则</h4><p>字符有很多种，如数字，汉字，英文字母，符号等。给定一堆字符串，如何进行排序，应该按照什么样的规则排序呢？所谓的排序规则就是按照这个规则可以确定一系列字符串的顺序。对于向数字，我们可以规定小的排在前面，大的排在后面，字母可以按照字典序排列，但是有的如汉字，其他国家的文字如何指定一个排序规则呢？不同的字符集有不同的排序规则，有的按照大小的逻辑关系，有的直接按照字符对应的二进制位的大小排序，有的不区分大小写，有的区分大小写。</p><p><strong>查看MySQL支持的字符集比较规则</strong></p><p><code>show collation</code></p><p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/mysql%E6%8E%A2%E7%A9%B6/clipboard_20200220071542.png" alt=""></p><p>比较规则的命名是有规律的</p><ul><li><p>比较规则名称以与其关联的字符集的名称开头。如上图的查询结果的⽐较规则名称都是以utf8开头的</p></li><li><p>后边紧跟着该比较规则主要作用于哪种语言，比如</p><ul><li>utf8_polish_ci表示以波兰语的规则比较</li><li>utf8_spanish_ci是以西班牙语的规则比较</li><li>utf8_general_ci是⼀种通⽤的⽐较规则。</li></ul></li><li><p>名称后缀意味着该比较规则是否区分语言中的重音、大小写啥的，具体可以用的值如下：</p><table><thead><tr><th align="center">后缀</th><th align="center">英文释义</th><th align="center">描述</th></tr></thead><tbody><tr><td align="center"><code>_ai</code></td><td align="center"><code>accent insensitive</code></td><td align="center">不区分重音</td></tr><tr><td align="center"><code>_as</code></td><td align="center"><code>accent sensitive</code></td><td align="center">区分重音</td></tr><tr><td align="center"><code>_ci</code></td><td align="center"><code>case insensitive</code></td><td align="center">不区分大小写</td></tr><tr><td align="center"><code>_cs</code></td><td align="center"><code>case sensitive</code></td><td align="center">区分大小写</td></tr><tr><td align="center"><code>_bin</code></td><td align="center"><code>binary</code></td><td align="center">以二进制方式比较</td></tr></tbody></table></li></ul><h4 id="3-MySQL各级别的字符集和比较规则"><a href="#3-MySQL各级别的字符集和比较规则" class="headerlink" title="3. MySQL各级别的字符集和比较规则"></a>3. MySQL各级别的字符集和比较规则</h4><p>mysql有四种级别的字符集和比较规则，分别是：</p><ul><li>服务器级别</li><li>数据库级别</li><li>表级别</li><li>列级别</li></ul><p><strong>服务器级别</strong></p><p><code>SHOW VARIABLES LIKE &#39;character_set_server&#39;;</code></p><p><code>SHOW VARIABLES LIKE &#39;collation_server&#39;</code></p><p>如果创建数据库没有指定字符集合比较规则默认使用服务器级别</p><p><strong>数据库级别</strong></p><p><code>SHOW VARIABLES LIKE &#39;character_set_database&#39;;</code></p><p><code>SHOW VARIABLES LIKE &#39;collation_database&#39;;</code></p><p>如果创建表的时候没有指定字符集和比较规则则默认使用数据库级别</p><p><strong>表级别</strong></p><p>设置表级别字符集和比较规则</p><pre><code>CREATE TABLE 表名 (列的信息)    [[DEFAULT] CHARACTER SET 字符集名称]    [COLLATE 比较规则名称]]</code></pre><p>如果字段不指定字符集合比较规则，默认与表级别一样</p><p><strong>列级别</strong></p><pre><code>CREATE TABLE 表名(    列名 字符串类型 [CHARACTER SET 字符集名称] [COLLATE 比较规则名称],    其他列...);ALTER TABLE 表名 MODIFY 列名 字符串类型 [CHARACTER SET 字符集名称] [COLLATE 比较规则名称];</code></pre><p><strong>修改规则</strong></p><p>由于字符集和比较规则是互相有联系的，如果只修改字符集，比较规则会跟着变化，如果只修改了比较规则，字符集也会跟着变化，具体规则如下：</p><ul><li>只修改字符集，则比较规则将变为修改后的字符集默认的比较规则。</li><li>只修改比较规则，则字符集将变为修改后的比较规则对应的字符集。</li></ul><h4 id="4-MySQL乱码问题"><a href="#4-MySQL乱码问题" class="headerlink" title="4. MySQL乱码问题"></a>4. MySQL乱码问题</h4><p>从客户端发送sql语句通过网络传给服务器到服务器返回结果给客户端展出出来，涉及到不同的编码转换，如果说编码转换出错了，则可能出现乱码问题。MySQL服务器与编码转换有关的系统变量如下。</p><table><thead><tr><th align="center">系统变量</th><th align="center">描述</th></tr></thead><tbody><tr><td align="center"><code>character_set_client</code></td><td align="center">服务器解码请求时使用的字符集</td></tr><tr><td align="center"><code>character_set_connection</code></td><td align="center">服务器处理请求时会把请求字符串从<code>character_set_client</code>转为<code>character_set_connection</code></td></tr><tr><td align="center"><code>character_set_results</code></td><td align="center">服务器向客户端返回数据时使用的字符集</td></tr></tbody></table><p>服务器认为客户端发送过来的数据是以<code>character_set_client</code>编码，于是会按照相同的方式解码，然后处理请求的时候会把他转换为<code>character_set_connection</code>编码，返回信息时会编码成<code>character_set_result</code>。也就是说假如客户端的编码与<code>character_set_client</code>和<code>character_set_results</code>不兼容的话就会发生乱码问题。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MySQL探究之InnoDB索引</title>
+      <link href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E7%B4%A2%E5%BC%95/"/>
+      <url>/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E7%B4%A2%E5%BC%95/</url>
+      
+        <content type="html"><![CDATA[<h5 id="1-什么是索引"><a href="#1-什么是索引" class="headerlink" title="1. 什么是索引"></a>1. 什么是索引</h5><p>索引是一种用于快速查找的有序的数据结构</p><h5 id="2-InnoDB中的索引方案"><a href="#2-InnoDB中的索引方案" class="headerlink" title="2. InnoDB中的索引方案"></a>2. InnoDB中的索引方案</h5><p>InnoDB使用B+树作为索引，B+树是一棵多路的搜索树，在MySQL这棵树一般不会超过4层。由于InnoDB读写磁盘的最小单位是页，所以使用页来作为B+树的节点，也就是搜索时最多只需要访问4次IO就可以找到对应的数据页。用户记录只存在底层的叶子节点中，数据页按顺序使用链表连接起来，然后非叶子节点时一些目录项，这些目录项只包含主键和下一层所在的页号，根据这个页号就可以找到下一级节点，目录项按照主键顺序连接在一起，并使用页目录辅助进行二分查找，所以在页内查找的速度很快。</p><h5 id="3-MyISAM中的索引方案"><a href="#3-MyISAM中的索引方案" class="headerlink" title="3. MyISAM中的索引方案"></a>3. MyISAM中的索引方案</h5><p>MyISAM存储引擎建立一张表后会生成三个文件.frm、.MYI和.MYD。其中.MYD存放用户记录，.MYI存放的是索引，也就是数据和索引是分开存放的，索引中存放的是主键和行号，当进行索引查询时首先在索引中找到主键对应的行号，然后根据行号去数据文件中进行查找（类似于回表操作）</p><h5 id="4-索引分类"><a href="#4-索引分类" class="headerlink" title="4. 索引分类"></a>4. 索引分类</h5><p><strong>聚簇索引</strong></p><p>B+树的叶子节点存储了完整的用户记录，即索引和数据一起存放，在查找聚簇索引时可以直接在这棵B+树索引中找到用户记录，所以一般查询很快。InnoDB存储引擎会为主键自动创建聚簇索引，并且一张表只有一个聚簇索引。</p><p><strong>辅助索引</strong></p><p>辅助索引的叶子节点中的记录按照建索引的那个字段按序存放，但是不存储所有的用户记录，只存储建索引的那个字段和主键，在查找辅助索引时找到了待查找的字段和主键，需要使用主键去聚簇索引中继续查找，这个过程称为回表。</p><p><strong>联合索引</strong></p><p>按照多个列的顺序为多个列同时建立的索引称为联合索引。</p><h5 id="5-索引带来的额外开销"><a href="#5-索引带来的额外开销" class="headerlink" title="5. 索引带来的额外开销"></a>5. 索引带来的额外开销</h5><p>索引虽然可以极大的提高查询效率，但是却会带来其他的开销，所以不能随便建立索引，开销主要包含以下两个方面：</p><ul><li><p>空间</p><p>B+树的每个节点就是一个页，所以会带来额外的空间开销。</p></li><li><p>时间</p><p>对表中数据进行增、删、改操作时会破坏B+树的性质，所以需要调整。如果建立很多索引，每个B+树都得进行维护。</p></li></ul><h5 id="6-使用索引的条件"><a href="#6-使用索引的条件" class="headerlink" title="6. 使用索引的条件"></a>6. 使用索引的条件</h5><ul><li><p>全值匹配</p><p>如果搜索条件与索引列一致则可以利用索引进行查找，这就是全值匹配</p></li><li><p>匹配左边的列</p><p>搜索条件中有多个列，但是只有左边连续的列与索引列一样，那么也可以利用到索引，因为对多个列建联合索引的比较条件是从左边的列开始比较的</p></li><li><p>匹配列前缀</p><p>如果索引列是字符串类型，搜索条件是一个包含前缀的模糊查询可以使用到索引。因为对字符串排序是按照字典序排列的，从字符串的左边到右边依次比较的。</p></li><li><p>匹配范围值</p><p>因为索引中的每一条记录都是按照顺序使用链表连接起来的，所以只要找到两个边界就可以快速查找出边界内所有的记录</p></li><li><p>精确匹配某一列并范围匹配另外一列</p></li><li><p>用于排序</p><p>索引本身是一个有序的结构，所以可以利用索引进行排序，如果没有索引就需要在内存中重新排序，开销非常大</p></li><li><p>用于分组</p><p>所谓的分组就是按照某个列，将该列一样的记录当做一组，所以可以利用索引有序的性质，因为有序，所以列相当的记录相邻。</p></li><li><p>覆盖索引</p><p>对于辅助索引需要进行回表的操作，如果回表的次数太多了，会带来可见的代价，为了减小这个代价可以使用覆盖索引来避免回表。覆盖索引就是查询的列包含在索引中，这样就只需要找到索引的叶子结点就可以找出查询的列而不需要去聚簇索引中找到所有的列。</p></li></ul><h5 id="7-如何建立索引"><a href="#7-如何建立索引" class="headerlink" title="7. 如何建立索引"></a>7. 如何建立索引</h5><ul><li>只为用于搜索、排序、分组的列建立索引</li><li>需要考虑列的区分度，如果某个字段所有行记录中的值基本都一样，比如说性别只有男女两种，那么建立索引就没有意义</li><li>索引列的类型尽量小，这样比较的时候开销会小，查询的速度就更快</li><li>对于很长的字符串，如果对整个字符串建立索引，那么索引占用的空间会非常大，所以一般只对长字符串的前缀建立索引</li><li>索引列不能进行任何计算</li><li>对于主键应该使主键按照顺序进行自增，这样插入时可以顺序插入</li><li>索引有额外的时间和空间代价，所以不要建立冗余的索引</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 数据库 </category>
+          
+          <category> mysql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据库 </tag>
+            
+            <tag> mysql </tag>
+            
+            <tag> InnoDB </tag>
+            
+        </tags>
       
     </entry>
     
