@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <title>Netty启动过程分析 | Severin的博客</title>
+  
+  
+
+  
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- meta -->
+  
+
+  <!-- link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.css">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.10.1/css/all.min.css">
+  
+
+  
+  <link rel="shortcut icon" type='image/x-icon' href="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/favicon.ico">
+  
+
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11.26/css/style.css">
+
+  
+
+  <script>
+    function setLoadingBarProgress(num) {
+      document.getElementById('loading-bar').style.width=num+"%";
+    }
+  </script>
+
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  
+  
+  <div class="cover-wrapper">
+    <cover class='cover post half'>
+      
+        
+  <h1 class='title'>Severin</h1>
+
+
+  <div class="m_search">
+    <form name="searchform" class="form u-search-form">
+      <input type="text" class="input u-search-input" placeholder="" />
+      <i class="icon fas fa-search fa-fw"></i>
+    </form>
+  </div>
+
+<div class='menu navgation'>
+  <ul class='h-list'>
+    
+      
+        <li>
+          <a class="nav home" href="/"
+            
+            
+            id="home">
+            <i class='fas fa-rss fa-fw'></i>&nbsp;博文
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/friends/"
+            
+              rel="nofollow"
+            
+            
+            id="friends">
+            <i class='fas fa-link fa-fw'></i>&nbsp;友链
+          </a>
+        </li>
+      
+        <li>
+          <a class="nav home" href="/about/"
+            
+              rel="nofollow"
+            
+            
+            id="about">
+            <i class='fas fa-info-circle fa-fw'></i>&nbsp;关于
+          </a>
+        </li>
+      
+    
+  </ul>
+</div>
+
+      
+    </cover>
+    <header class="l_header pure">
+  <div id="loading-bar-wrapper">
+    <div id="loading-bar" class="pure"></div>
+  </div>
+
+	<div class='wrapper'>
+		<div class="nav-main container container--flex">
+      <a class="logo flat-box" href='/' >
+        
+          Severin的博客
+        
+      </a>
+			<div class='menu navgation'>
+				<ul class='h-list'>
+          
+  					
+  						<li>
+								<a class="nav flat-box" href="/"
+                  
+                  
+                  id="home">
+									<i class='fas fa-grin fa-fw'></i>&nbsp;示例
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/categories/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="categories">
+									<i class='fas fa-folder-open fa-fw'></i>&nbsp;分类
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/tags/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="tags">
+									<i class='fas fa-hashtag fa-fw'></i>&nbsp;标签
+								</a>
+							</li>
+      			
+  						<li>
+								<a class="nav flat-box" href="/archives/"
+                  
+                    rel="nofollow"
+                  
+                  
+                  id="archives">
+									<i class='fas fa-archive fa-fw'></i>&nbsp;归档
+								</a>
+							</li>
+      			
+      		
+				</ul>
+			</div>
+
+			
+				<div class="m_search">
+					<form name="searchform" class="form u-search-form">
+						<input type="text" class="input u-search-input" placeholder="Search" />
+						<i class="icon fas fa-search fa-fw"></i>
+					</form>
+				</div>
+			
+			<ul class='switcher h-list'>
+				
+					<li class='s-search'><a class="fas fa-search fa-fw" href='javascript:void(0)'></a></li>
+				
+				<li class='s-menu'><a class="fas fa-bars fa-fw" href='javascript:void(0)'></a></li>
+			</ul>
+		</div>
+
+		<div class='nav-sub container container--flex'>
+			<a class="logo flat-box"></a>
+			<ul class='switcher h-list'>
+				<li class='s-comment'><a class="flat-btn fas fa-comments fa-fw" href='javascript:void(0)'></a></li>
+        
+          <li class='s-toc'><a class="flat-btn fas fa-list fa-fw" href='javascript:void(0)'></a></li>
+        
+			</ul>
+		</div>
+	</div>
+</header>
+	<aside class="menu-phone">
+    <header>
+		<nav class="menu navgation">
+      <ul>
+        
+          
+            <li>
+							<a class="nav flat-box" href="/"
+                
+                
+                id="home">
+								<i class='fas fa-clock fa-fw'></i>&nbsp;近期文章
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/blog/archives/"
+                
+                  rel="nofollow"
+                
+                
+                id="blogarchives">
+								<i class='fas fa-archive fa-fw'></i>&nbsp;文章归档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/projects/"
+                
+                
+                id="projects">
+								<i class='fas fa-code-branch fa-fw'></i>&nbsp;开源项目
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/friends/"
+                
+                  rel="nofollow"
+                
+                
+                id="friends">
+								<i class='fas fa-link fa-fw'></i>&nbsp;我的友链
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="https://xaoxuu.com/wiki/material-x/"
+                
+                  rel="nofollow"
+                
+                
+                id="https:xaoxuu.comwikimaterial-x">
+								<i class='fas fa-book fa-fw'></i>&nbsp;主题文档
+							</a>
+            </li>
+          
+            <li>
+							<a class="nav flat-box" href="/about/"
+                
+                  rel="nofollow"
+                
+                
+                id="about">
+								<i class='fas fa-info-circle fa-fw'></i>&nbsp;关于小站
+							</a>
+            </li>
+          
+       
+      </ul>
+		</nav>
+    </header>
+	</aside>
+<script>setLoadingBarProgress(40);</script>
+
+  </div>
+
+
+  <div class="l_body">
+    <div class='body-wrapper'>
+      <div class='l_main'>
+  
+
+  <article id="post" class="post white-box article-type-post" itemscope itemprop="blogPost">
+    
+
+
+  <section class='meta'>
+    
+    
+    <div class="meta" id="header-meta">
+      
+        
+  
+    <h1 class="title">
+      <a href="/2020/01/10/Netty%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90/">
+        Netty启动过程分析
+      </a>
+    </h1>
+  
+
+
+      
+      <div class='new-meta-box'>
+        
+          
+        
+          
+            
+  <div class='new-meta-item author'>
+    
+      <a href="https://www.severin.xyz" rel="nofollow">
+        
+          <i class="fas fa-user" aria-hidden="true"></i>
+        
+        <p>Severin</p>
+      </a>
+    
+  </div>
+
+
+          
+        
+          
+            <div class="new-meta-item date">
+  <a class='notlink'>
+    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+    <p>2020-01-10</p>
+  </a>
+</div>
+
+          
+        
+          
+            
+  
+  <div class='new-meta-item category'>
+    <a href='/categories/java%E8%BF%9B%E9%98%B6/java-io/' rel="nofollow">
+      <i class="fas fa-folder-open" aria-hidden="true"></i>
+      <p>java进阶&nbsp;/&nbsp;java io</p>
+    </a>
+  </div>
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item browse busuanzi">
+      <a class='notlink'>
+        <i class="fas fa-eye" aria-hidden="true"></i>
+        <p>
+          <span id="busuanzi_value_page_pv">
+            <i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i>
+          </span>
+        </p>
+      </a>
+    </div>
+  
+
+
+          
+        
+          
+            
+  
+    <div class="new-meta-item wordcount">
+      <a class='notlink'>
+        <i class="fas fa-keyboard" aria-hidden="true"></i>
+        <p>字数统计:</p>
+        <p>2.7k字</p>
+      </a>
+    </div>
+    <div class="new-meta-item readtime">
+      <a class='notlink'>
+        <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+        <p>阅读时长≈</p>
+        <p>11分</p>
+      </a>
+    </div>
+  
+
+          
+        
+          
+            
+
+          
+        
+      </div>
+      
+        <hr>
+      
+    </div>
+  </section>
+
+
+    <section class="article typo">
+      <div class="article-entry" itemprop="articleBody">
+        <h5 id="1-Netty的工作模式"><a href="#1-Netty的工作模式" class="headerlink" title="1. Netty的工作模式"></a>1. Netty的工作模式</h5><p>Netty基于主从Reactor模式实现，它的基本结构如下图所示:</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/netty_boss_work.png" alt=""></p>
+<p>Neety的工作方式基本如上图所示：</p>
+<p>首先Netty基于主从Reactor模式，有两个EventLoopGroup，一般称为BossGroup和WorkerGroup。其中BossGroup充当主Reactor的角色。EventLoopGroup包含多个EventLoop，每个EventLoop代表一个线程，EventLoop内部会运行select这样的IO多路复用函数用来监听事件。BossGroup和WorkerGroup的职责不同，BossGroup负责监听连接事件，当连接事件到达后会将事件注册到WorkerGroup中，而WorkerGroup监听读写事件，当监听到读写事件发送后会将这个事件交给Pipeline去处理业务。</p>
+<p>本小节主要探究的是<strong>Netty如何启动EventLoopGroup去监听事件，监听到事件后如何触发pipeline去处理业务方法。</strong></p>
+<hr>
+<h5 id="2-BossGroup是怎么启动的"><a href="#2-BossGroup是怎么启动的" class="headerlink" title="2. BossGroup是怎么启动的"></a>2. BossGroup是怎么启动的</h5><p>面对BossGroup，我们已经知道了其功能与作用是绑定端口监听连接事件，并且把连接的channel的读写事件注册到workerGroup中，为了验证这个过程，我们有如下几个问题需要解决：</p>
+<ul>
+<li>EventLoopGroup每次启动如何创建线程的，创建几个？</li>
+<li>EventLoopGroup有多个EventLoop，如何选择新连接绑定到哪个EventLoop呢？</li>
+<li>BossGroup是如何绑定端口的</li>
+<li>BossGroup是如何处理连接的</li>
+</ul>
+<p><strong>EventLoopGroup每次启动如何创建线程的，创建几个</strong></p>
+<p>代码跟踪过程如下图所示：</p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/bossGroup_create.png" alt=""></p>
+<hr>
+<pre><code class="java"> protected MultithreadEventLoopGroup(int nThreads, Executor executor, Object... args) {
+        super(nThreads == 0 ? DEFAULT_EVENT_LOOP_THREADS : nThreads, executor, args);
+ }
+// DEFAULT_EVENT_LOOP_THREADS的计算如下
+ static {
+        DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
+                &quot;io.netty.eventLoopThreads&quot;, NettyRuntime.availableProcessors() * 2));
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(&quot;-Dio.netty.eventLoopThreads: {}&quot;, DEFAULT_EVENT_LOOP_THREADS);
+        }
+ }</code></pre>
+<p>从这个构造函数可以看出来，nThread构造参数代表最终创建的线程数量，默认是CPU核心数*2</p>
+<pre><code class="java"> protected MultithreadEventExecutorGroup
+     (int nThreads, Executor executor, EventExecutorChooserFactory chooserFactory, Object... args) {
+        // 前面的参数校验的代码省略
+        // 重点代码
+        if (executor == null) {
+            // 创建线程执行器，并且包含一个创建线程的工厂，重点代码
+            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
+        }
+        children = new EventExecutor[nThreads];
+
+        for (int i = 0; i &lt; nThreads; i ++) {
+            children[i] = newChild(executor, args);
+            // 异常处理的代码省略
+        }
+    }</code></pre>
+<p>这段代码是NioEventLoopGroup的父类的父类的构造方法，这个方法中使用ThreadPerTaskExecutor创建了nThread个线程实体。具体看一下newChild方法的作用</p>
+<pre><code class="java">protected EventLoop newChild(Executor executor, Object... args) throws Exception {
+        EventLoopTaskQueueFactory queueFactory = args.length == 4 ? (EventLoopTaskQueueFactory) args[3] : null;
+    // 创建一个NioEventLoop
+        return new NioEventLoop(this, executor, (SelectorProvider) args[0],
+            ((SelectStrategyFactory) args[1]).newSelectStrategy(), (RejectedExecutionHandler) args[2], queueFactory);
+}</code></pre>
+<p>可以看到NioEventLoopGroup调用newChild方法创建了nThread个NioEventLoop，而创建NioEventLoop时把executor给传进去了，因此下一步要分析executor有什么用，NioEventLoop怎么利用executor。</p>
+<pre><code class="java">public final class ThreadPerTaskExecutor implements Executor {
+    private final ThreadFactory threadFactory;
+
+    public ThreadPerTaskExecutor(ThreadFactory threadFactory) {
+        // 传入一个线程工厂，线程工厂负责创建线程
+        this.threadFactory = ObjectUtil.checkNotNull(threadFactory, &quot;threadFactory&quot;);
+    }
+
+    // 每调用一次execute都会用线程工厂去创建一个线程执行传过来的任务
+    @Override
+    public void execute(Runnable command) {
+        threadFactory.newThread(command).start();
+    }
+}
+</code></pre>
+<p>再看一下NioEventLoop的构造方法</p>
+<pre><code class="java">NioEventLoop(NioEventLoopGroup parent, Executor executor, SelectorProvider selectorProvider,
+                 SelectStrategy strategy, RejectedExecutionHandler rejectedExecutionHandler,
+                 EventLoopTaskQueueFactory queueFactory) {
+    // executor
+        super(parent, executor, false, newTaskQueue(queueFactory), newTaskQueue(queueFactory),
+                rejectedExecutionHandler);
+        this.provider = ObjectUtil.checkNotNull(selectorProvider, &quot;selectorProvider&quot;);
+        this.selectStrategy = ObjectUtil.checkNotNull(strategy, &quot;selectStrategy&quot;);
+        final SelectorTuple selectorTuple = openSelector();
+    // 保存selector,这个selector就是nio中的selector
+        this.selector = selectorTuple.selector;
+        this.unwrappedSelector = selectorTuple.unwrappedSelector;
+ }</code></pre>
+<pre><code class="java">  protected SingleThreadEventExecutor(EventExecutorGroup parent, Executor executor,
+                                        boolean addTaskWakesUp, Queue&lt;Runnable&gt; taskQueue,
+                                        RejectedExecutionHandler rejectedHandler) {
+        super(parent);
+        this.addTaskWakesUp = addTaskWakesUp;
+        this.maxPendingTasks = DEFAULT_MAX_PENDING_EXECUTOR_TASKS;
+        this.executor = ThreadExecutorMap.apply(executor, this);// 保存executor
+        this.taskQueue = ObjectUtil.checkNotNull(taskQueue, &quot;taskQueue&quot;);// 保存任务队列
+        this.rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, &quot;rejectedHandler&quot;);
+    }</code></pre>
+<p>此时到目前为止只是成功创建了EventLoopGroup和其中的多个EventLoop，但是通过debug发现并没有创建线程，目前EventLoop实际上已经有创建线程的能力了。通过debug发现真正创建线程得到绑定端口时才会创建。</p>
+<p>总结：</p>
+<p>NioEventLoopGroup的构造参数决定了NioEvnetLoopGroup包含几个NioEvnetLoop，默认是CPU核心数*2。然后NioEventLoop包含了Nio中的selector实现IO多路复用以及一个线程执行器用来创建线程执行任务，还有一个任务队列。</p>
+<hr>
+<p><strong>如何选择新连接绑定到哪个EventLoop</strong></p>
+<p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/IO/chooser_create.png" alt=""></p>
+<pre><code class="java">   protected MultithreadEventExecutorGroup(int nThreads, Executor executor,
+                                            EventExecutorChooserFactory chooserFactory, Object... args) {
+         // 前面创建EventLoop的方代码省略
+        // 这里创建的是一个选择器，用来选择一个EventLoop绑定新连接
+        chooser = chooserFactory.newChooser(children);
+        // 后面代码省略
+    }</code></pre>
+<pre><code class="java">public EventExecutor next() {
+    // EventLoopGroup调用选择方法，封装了选择器的next方法
+    return chooser.next();
+}</code></pre>
+<pre><code class="java">public EventExecutor next() {
+    // 从第一个开始每次选择下一个，知道最后一个后又回到第一个，这是children的长度是2的幂的情况
+    return executors[idx.getAndIncrement() &amp; executors.length - 1];
+}</code></pre>
+<pre><code class="java">public EventExecutor next() {
+    // 选择的方法和前面一样，只是计算方法不一样，读children的数量没有要求
+    return executors[idx.getAndIncrement() &amp; executors.length - 1];
+}</code></pre>
+<p>总结：</p>
+<p>创建选择器时会根据chilren的个数来创建不同的选择器，选择器的next方法的结果是一样的，每次选择下一个然后回到第一个。只不过如果个数是2的幂，可以进行一定的优化提高选择速度。</p>
+<hr>
+<p><strong>BossGroup是如何绑定端口的</strong></p>
+<p>首先应该知道BossGroup监控的是ServerSocketChannel，ServerSocketChannel需要和一个EventLoop进行绑定才能够开启一个监控的任务，所以第一步是要找到ServerSocketChannel与EventLoop绑定的过程，前面分析了有一个组件是选择器，它的作用就是选择一个指定的EventLoop返回，ServerSocketChannel与EventLoop绑定的过程肯定要调用选择器的next方法，绑定EventLoop的过程暂时不描述，只要记住ServerSocketChannel一定已经和一个EventLoop关联了，然后看下面的代码。</p>
+<pre><code class="java"> private static void doBind0(
+            final ChannelFuture regFuture, final Channel channel,
+            final SocketAddress localAddress, final ChannelPromise promise) {
+        // 向EventLoop提交任务
+        channel.eventLoop().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (regFuture.isSuccess()) {
+                    // 这是一个绑定端口的方法
+                    channel.bind(localAddress, promise).
+                        addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                } else {
+                    promise.setFailure(regFuture.cause());
+                }
+            }
+        });
+    }</code></pre>
+<p>上面可以看到channel的EventLoop执行了一个绑定端口的方法，而我们的BossGroup的作用之一就是监听端口等待连接，所以这个bind方法最后应该能够追踪到Nio中的bind方法。</p>
+<p>最终端口绑定的方法如下：</p>
+<pre><code class="java">  protected void doBind(SocketAddress localAddress) throws Exception {
+        if (PlatformDependent.javaVersion() &gt;= 7) {
+            javaChannel().bind(localAddress, config.getBacklog());
+        } else {
+            javaChannel().socket().bind(localAddress, config.getBacklog());
+        }
+    }</code></pre>
+<hr>
+<p><strong>BossGroup如何处理新的连接</strong></p>
+<p>从bind方法进入</p>
+<pre><code class="java">void init(Channel channel) {
+        p.addLast(new ChannelInitializer&lt;Channel&gt;() {
+            @Override
+            public void initChannel(final Channel ch) {
+                final ChannelPipeline pipeline = ch.pipeline();
+                ChannelHandler handler = config.handler();
+                if (handler != null) {
+                    pipeline.addLast(handler);
+                }
+
+                ch.eventLoop().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        pipeline.addLast(new ServerBootstrapAcceptor(
+                                ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                    }
+                });
+            }
+        });
+    }</code></pre>
+<p>channel使用pipeline组件来处理业务逻辑，当ServerSocketChannel产生连接事件后需要将这个事件交给pipline去处理，因此上面的代码中实际上为pipline添加了一个业务处理类ServerBootstrapAcceptor。下面是ServerBootstrapAcceptor的channelRead方法用来处理连接。</p>
+<pre><code class="java">       public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            final Channel child = (Channel) msg;
+
+            child.pipeline().addLast(childHandler);
+
+            setChannelOptions(child, childOptions, logger);
+            setAttributes(child, childAttrs);
+
+            try {
+                // 将channel注册到childGroup中
+                childGroup.register(child).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (!future.isSuccess()) {
+                            forceClose(child, future.cause());
+                        }
+                    }
+                });
+            } catch (Throwable t) {
+                forceClose(child, t);
+            }
+        }</code></pre>
+<p>可以看到上面这个方法首先将客户端对应的channel与对应的pipeline业务关联，然后将其注册到childGroup中，也就是workerGroup。</p>
+<h5 id="3-EventLoop如何监听事件"><a href="#3-EventLoop如何监听事件" class="headerlink" title="3. EventLoop如何监听事件"></a>3. EventLoop如何监听事件</h5><pre><code class="java">    @Override
+    protected void run() {
+        int selectCnt = 0;
+        // 这里是一段无限for循环
+        for (;;) {
+            try {
+                int strategy;
+                try {
+                    strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
+                    switch (strategy) {
+                    case SelectStrategy.CONTINUE:
+                        continue;
+
+                    case SelectStrategy.BUSY_WAIT:
+                    case SelectStrategy.SELECT:
+                        // 内部有一个优先队列用来存放用户自定义的定时任务，这一行代码的目的是判断一下                        // 最近需要执行的定时任务的时间
+                        long curDeadlineNanos = nextScheduledTaskDeadlineNanos();
+                        // 如果没有用户自定义任务就赋给NONE
+                        if (curDeadlineNanos == -1L) {
+                            curDeadlineNanos = NONE; 
+                        }
+                        nextWakeupNanos.set(curDeadlineNanos);
+                        try {
+                            // 如果任务队列中没有任务需要去执行才执行select方法
+                            if (!hasTasks()) {
+                                // 1. 调用select方法
+                                strategy = select(curDeadlineNanos);
+                            }
+                        } finally {
+                            nextWakeupNanos.lazySet(AWAKE);
+                        }
+                    default:
+                    }
+                } catch (IOException e) {
+                    // 这里是重建selector，为了解决jdk空轮询bug
+                    rebuildSelector0();
+                    selectCnt = 0;
+                    handleLoopException(e);
+                    continue;
+                }
+
+                selectCnt++;
+                cancelledKeys = 0;
+                needsToSelectAgain = false;
+                final int ioRatio = this.ioRatio;
+                boolean ranTasks;
+                if (ioRatio == 100) {
+                    try {
+                        if (strategy &gt; 0) {
+                            // 处理发送的事件
+                            processSelectedKeys();
+                        }
+                    } finally {
+                        // 处理队列中的任务
+                        ranTasks = runAllTasks();
+                    }
+                } else if (strategy &gt; 0) {
+                    final long ioStartTime = System.nanoTime();
+                    try {
+                        // 处理发送的事件
+                        processSelectedKeys();
+                    } finally {
+                        // 处理队列中的任务
+                        final long ioTime = System.nanoTime() - ioStartTime;
+                        ranTasks = runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
+                    }
+                } else {
+                    ranTasks = runAllTasks(0); 
+                }
+        }
+    }</code></pre>
+<p>上面代码基本上已经说明了监听事件的过程，首先调用select方法，返回后处理产生的事件然后处理队列中的任务。</p>
+<pre><code class="java"> private int select(long deadlineNanos) throws IOException {
+         // 进入if的条件是没有自定义的定时任务并且任务队列为空（执行select方法前就判断了）
+        // 所以此时可以放心的调用阻塞的select方法
+        if (deadlineNanos == NONE) {
+            return selector.select();
+        }
+        // 这一步的作用是如果还有5微秒就有一个延时任务需要处理，那么就调用非阻塞的select
+        // 否则调用阻塞的select
+        long timeoutMillis = deadlineToDelayNanos(deadlineNanos + 995000L) / 1000000L;
+        return timeoutMillis &lt;= 0 ? selector.selectNow() : selector.select(timeoutMillis);
+    }</code></pre>
+<h5 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h5><p>通过前面的代码，大致了解了EventLoopGroup是如何创建的，如何监听事件的以及如何处理用户自定义任务的。下面是总结。</p>
+<ol>
+<li>以NioEventLoopGroup为例，首先NioEventLoopGroup的构造函数可以设置每个NioEventLoopGroup可以创建多少个NioEventLoop，默认是当前可用的CPU核心数*2。</li>
+<li>知道创建多少个NioEventLoop后需要知道怎么创建NioEventLoop，在NioEventLoopGroup中会首先构造出一个线程创建执行器，这个执行器里面包含了一个创建线程的线程工厂。</li>
+<li>然后开始创建NioEventLoop，构造方法会将selector，线程创建执行器以及一个任务队列保存早NioEventLoop的，此时NioEventLoop和NioEventLoopGroup就准备好了。</li>
+<li>然后服务端的启动需要一个ServerSocketChannel对象，这个对象在调用bootstrap的bind方法时会通过反射创建并且将其与Pipeline和一个NioEventLoop绑定并最后绑定端口号完成端口监听。NioEventLoop负责监控这个channel的事件，PipeLine包含处理新连接的业务方法，具体过程是将客户端对应的channel与客户端对应的pipeline绑定，然后注册到workerGroup中，由workerGroup去监听所有的客户端。</li>
+<li>NioEventLoopGroup中的NioEventLoop内部会执行一个无限for循环，这个for循环中会去不断的执行select方法，然后处理发生的事件。</li>
+<li>由于NioEventLoop内部包含了一个任务队列和一个定时任务队列用来存放用户的任务和定时任务，所以在for循环中除了要执行select方法外还要在循环的过程中去处理任务，具体为，只有当任务队列为空采取执行select，并且如果有一个定时任务快要发生了，会去执行一个非阻塞的select方法，否则执行一个阻塞的select方法直到定时任务发生，最后处理完连接后回去处理定时任务和任务队列。</li>
+</ol>
+
+      </div>
+      
+        <br>
+        <center>感谢你对我的支持！<br><fancybox><img style="width:200px; height:200px; border-radius:50%;" src="https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/reward.png"/></fancybox></center>
+      
+      
+        <br>
+        
+
+
+  <section class='meta' id="footer-meta">
+    <div class='new-meta-box'>
+      
+        
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-23T14:39:39+08:00">
+  <a class='notlink'>
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <p>updated at Feb 23, 2020</p>
+  </a>
+</div>
+
+        
+      
+        
+          
+  
+  <div class="new-meta-item meta-tags"><a class="tag" href="/tags/java/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>java</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/io/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>io</p></a></div> <div class="new-meta-item meta-tags"><a class="tag" href="/tags/netty/" rel="nofollow"><i class="fas fa-tag" aria-hidden="true"></i><p>netty</p></a></div>
+
+
+        
+      
+        
+          
+  <div class="new-meta-item share -mob-share-list">
+  <div class="-mob-share-list share-body">
+    
+      
+        <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
+          
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2020/01/10/Netty%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90/&title=Netty启动过程分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qq.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
+          
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2020/01/10/Netty%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90/&title=Netty启动过程分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/qzone.png">
+          
+        </a>
+      
+    
+      
+        <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
+          
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2020/01/10/Netty%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B%E5%88%86%E6%9E%90/&title=Netty启动过程分析 | Severin的博客&summary="
+          
+          >
+          
+            <img src="https://cdn.jsdelivr.net/gh/xaoxuu/assets@19.1.9/logo/128/weibo.png">
+          
+        </a>
+      
+    
+  </div>
+</div>
+
+
+
+        
+      
+    </div>
+  </section>
+
+
+      
+      
+          <div class="prev-next">
+              
+                  <section class="prev">
+                      <span class="art-item-left">
+                          <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
+                          <h4>
+                              <a href="/2020/01/10/MySQL%E6%8E%A2%E7%A9%B6%E4%B9%8B%E8%BF%9E%E6%8E%A5%E7%9A%84%E5%8E%9F%E7%90%86/" rel="prev" title="MySQL探究之连接的原理">
+                                
+                                    MySQL探究之连接的原理
+                                
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> 数据库</a> <a class="tag" href="/tags/mysql/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> mysql</a> <a class="tag" href="/tags/InnoDB/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> InnoDB</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+              
+                  <section class="next">
+                      <span class="art-item-right" aria-hidden="true">
+                          <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
+                          <h4>
+                              <a href="/2020/01/10/java%20IO%E4%B8%8E%E9%9B%B6%E6%8B%B7%E8%B4%9D%E5%88%86%E6%9E%90/" rel="prev" title="java io与零拷贝分析">
+                                  
+                                      java io与零拷贝分析
+                                  
+                              </a>
+                          </h4>
+                          
+                              
+                              <h6 class="tags">
+                                  <a class="tag" href="/tags/java/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> java</a> <a class="tag" href="/tags/io/"><i class="fas fa-tag fa-fw" aria-hidden="true"></i> io</a>
+                              </h6>
+                          
+                      </span>
+                  </section>
+              
+          </div>
+      
+    </section>
+  </article>
+
+
+
+  <!-- 显示推荐文章和评论 -->
+
+
+
+  <article class="post white-box comments">
+    <section class="article typo">
+      <h4><i class="fas fa-comments fa-fw" aria-hidden="true"></i>&nbsp;Comments</h4>
+      
+      
+      
+      
+        <section id="comments">
+          <div id="valine_container" class="valine_thread">
+            <i class="fas fa-spinner fa-spin fa-fw"></i>
+          </div>
+        </section>
+      
+    </section>
+  </article>
+
+
+
+
+
+
+<!-- 根据页面mathjax变量决定是否加载MathJax数学公式js -->
+
+
+
+  <script>
+    window.subData = {
+      title: 'Netty启动过程分析',
+      tools: true
+    }
+  </script>
+
+
+</div>
+<aside class='l_side'>
+  
+    
+    
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+            
+              
+  <section class='widget toc-wrapper'>
+    
+<header class='pure'>
+  <div><i class="fas fa-list fa-fw" aria-hidden="true"></i>&nbsp;&nbsp;TOC</div>
+  
+    <!-- <div class='wrapper'><a class="s-toc rightBtn" rel="external nofollow noopener noreferrer" href="javascript:void(0)"><i class="fas fa-thumbtack fa-fw"></i></a></div> -->
+  
+</header>
+
+    <div class='content pure'>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-Netty的工作模式"><span class="toc-text">1. Netty的工作模式</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-BossGroup是怎么启动的"><span class="toc-text">2. BossGroup是怎么启动的</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-EventLoop如何监听事件"><span class="toc-text">3. EventLoop如何监听事件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-总结"><span class="toc-text">4. 总结</span></a></li></ol>
+    </div>
+  </section>
+
+
+            
+          
+        
+          
+          
+        
+          
+          
+        
+      
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+          
+          
+        
+      
+    
+
+  
+</aside>
+
+<footer id="footer" class="clearfix">
+  
+  
+    <div class="social-wrapper">
+      
+        
+          <a href="/atom.xml"
+            class="social fas fa-rss flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="mailto:807920489@qq.com"
+            class="social fas fa-envelope flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+        
+          <a href="https://github.com/mike-zeng"
+            class="social fab fa-github flat-btn"
+            target="_blank"
+            rel="external nofollow noopener noreferrer">
+          </a>
+        
+      
+    </div>
+  
+  <br>
+  <div><p>Blog content follows the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en" target="_blank" rel="noopener">Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0) License</a></p>
+</div>
+  <div>
+    Use
+    <a href="https://xaoxuu.com/wiki/material-x/" target="_blank" class="codename">Material X</a>
+    as theme
+    
+      , 
+      total visits
+      <span id="busuanzi_value_site_pv"><i class="fas fa-spinner fa-spin fa-fw" aria-hidden="true"></i></span>
+      times
+    
+    . 
+  </div>
+</footer>
+<script>setLoadingBarProgress(80);</script>
+
+
+      <script>setLoadingBarProgress(60);</script>
+    </div>
+    <a class="s-top fas fa-arrow-up fa-fw" href='javascript:void(0)'></a>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+
+  <script>
+    var GOOGLE_CUSTOM_SEARCH_API_KEY = "";
+    var GOOGLE_CUSTOM_SEARCH_ENGINE_ID = "";
+    var ALGOLIA_API_KEY = "";
+    var ALGOLIA_APP_ID = "";
+    var ALGOLIA_INDEX_NAME = "";
+    var AZURE_SERVICE_NAME = "";
+    var AZURE_INDEX_NAME = "";
+    var AZURE_QUERY_KEY = "";
+    var BAIDU_API_ID = "";
+    var SEARCH_SERVICE = "hexo" || "hexo";
+    var ROOT = "/"||"/";
+    if(!ROOT.endsWith('/'))ROOT += '/';
+  </script>
+
+<script src="//instant.page/1.2.2" type="module" integrity="sha384-2xV8M5griQmzyiY3CDqh1dn4z3llDVqZDqzjzcY+jCBCk/a5fXJmuZ/40JJAPeoU"></script>
+
+
+  <script async src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.5/dist/scrollreveal.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      const $reveal = $('.reveal');
+      if ($reveal.length === 0) return;
+      const sr = ScrollReveal({ distance: 0 });
+      sr.reveal('.reveal');
+    });
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/node-waves@0.7.6/dist/waves.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      Waves.attach('.flat-btn', ['waves-button']);
+      Waves.attach('.float-btn', ['waves-button', 'waves-float']);
+      Waves.attach('.float-btn-light', ['waves-button', 'waves-float', 'waves-light']);
+      Waves.attach('.flat-box', ['waves-block']);
+      Waves.attach('.float-box', ['waves-block', 'waves-float']);
+      Waves.attach('.waves-image');
+      Waves.init();
+    });
+  </script>
+
+
+  <script async src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-busuanzi@2.3/js/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script type="text/javascript">
+      $(function(){
+        if ('.cover') {
+          $('.cover').backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        } else {
+          $.backstretch(
+          ["https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background1.jpg", "https://cdn.jsdelivr.net/gh/mike-zeng/zeng_cdn/blog/image/background2.jpg"],
+          {
+            duration: "6000",
+            fade: "2500"
+          });
+        }
+      });
+    </script>
+  
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/volantis@1.0.6/js/volantis.min.js"></script>
+
+    
+  
+  <script>
+  var GUEST_INFO = ['nick','mail','link'];
+  var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+    return GUEST_INFO.indexOf(item) > -1
+  });
+  var notify = 'true' == true;
+  var verify = 'true' == true;
+  var valine = new Valine();
+  valine.init({
+    el: '#valine_container',
+    notify: notify,
+    verify: verify,
+    guest_info: guest_info,
+    
+    appId: "03wbpQpd8dcMWzsThoJ6MPQA-gzGzoHsz",
+    appKey: "8KLQBX5uu2Reuus89jvRTphH",
+    placeholder: "快来评论吧~",
+    pageSize:'10',
+    avatar:'retro',
+    lang:'zh-cn',
+    highlight:'true'
+  })
+  </script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/app.js"></script>
+
+
+
+  
+<script src="https://cdn.jsdelivr.net/gh/xaoxuu/cdn-material-x@19.11/js/search.js"></script>
+
+
+
+
+
+<!-- 复制 -->
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  let COPY_SUCCESS = "Copied";
+  let COPY_FAILURE = "Copy failed";
+  /*页面载入完成后，创建复制按钮*/
+  !function (e, t, a) {
+    /* code */
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '  <i class="fa fa-copy"></i><span>Copy</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+
+      clipboard.on('success', function(e) {
+        //您可以加入成功提示
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+        success_prompt(COPY_SUCCESS);
+        e.clearSelection();
+      });
+      clipboard.on('error', function(e) {
+        //您可以加入失败提示
+        console.error('Action:', e.action);
+        console.error('Trigger:', e.trigger);
+        fail_prompt(COPY_FAILURE);
+      });
+    }
+    initCopyCode();
+
+  }(window, document);
+
+  /**
+   * 弹出式提示框，默认1.5秒自动消失
+   * @param message 提示信息
+   * @param style 提示样式，有alert-success、alert-danger、alert-warning、alert-info
+   * @param time 消失时间
+   */
+  var prompt = function (message, style, time)
+  {
+      style = (style === undefined) ? 'alert-success' : style;
+      time = (time === undefined) ? 1500 : time*1000;
+      $('<div>')
+          .appendTo('body')
+          .addClass('alert ' + style)
+          .html(message)
+          .show()
+          .delay(time)
+          .fadeOut();
+  };
+
+  // 成功提示
+  var success_prompt = function(message, time)
+  {
+      prompt(message, 'alert-success', time);
+  };
+
+  // 失败提示
+  var fail_prompt = function(message, time)
+  {
+      prompt(message, 'alert-danger', time);
+  };
+
+  // 提醒
+  var warning_prompt = function(message, time)
+  {
+      prompt(message, 'alert-warning', time);
+  };
+
+  // 信息提示
+  var info_prompt = function(message, time)
+  {
+      prompt(message, 'alert-info', time);
+  };
+
+</script>
+
+
+<!-- fancybox -->
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+<script>
+  let LAZY_LOAD_IMAGE = "";
+  $(".article-entry").find("fancybox").find("img").each(function () {
+      var element = document.createElement("a");
+      $(element).attr("data-fancybox", "gallery");
+      $(element).attr("href", $(this).attr("src"));
+      /* 图片采用懒加载处理时,
+       * 一般图片标签内会有个属性名来存放图片的真实地址，比如 data-original,
+       * 那么此处将原本的属性名src替换为对应属性名data-original,
+       * 修改如下
+       */
+       if (LAZY_LOAD_IMAGE) {
+         $(element).attr("href", $(this).attr("data-original"));
+       }
+      $(this).wrap(element);
+  });
+</script>
+
+
+
+
+
+  <script>setLoadingBarProgress(100);</script>
+</body>
+</html>
