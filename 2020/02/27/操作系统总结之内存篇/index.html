@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   
-  <title>java内存模型 | Severin的博客</title>
+  <title>操作系统总结之内存篇 | Severin的博客</title>
   
   
 
@@ -286,8 +286,8 @@
         
   
     <h1 class="title">
-      <a href="/2020/02/06/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/">
-        java内存模型
+      <a href="/2020/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/">
+        操作系统总结之内存篇
       </a>
     </h1>
   
@@ -318,7 +318,7 @@
             <div class="new-meta-item date">
   <a class='notlink'>
     <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-    <p>2020-02-06</p>
+    <p>2020-02-27</p>
   </a>
 </div>
 
@@ -354,14 +354,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>922字</p>
+        <p>1.4k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>3分</p>
+        <p>4分</p>
       </a>
     </div>
   
@@ -383,47 +383,71 @@
 
     <section class="article typo">
       <div class="article-entry" itemprop="articleBody">
-        <h5 id="1-Java内存模型的基础"><a href="#1-Java内存模型的基础" class="headerlink" title="1. Java内存模型的基础"></a>1. Java内存模型的基础</h5><p>在并发编程中，需要处理两个关键问题：线程之间如何通信及线程之间如何同步。</p>
-<p>有两种方式实现：</p>
+        <h5 id="1-内存管理概念"><a href="#1-内存管理概念" class="headerlink" title="1. 内存管理概念"></a>1. 内存管理概念</h5><p>内存是一个稀缺资源，很难将所有需要执行的进程都放入主存中，所以操作系统必须将内存空间进行合理地划分和有效地动态分派。操作系统对内存的划分和动态分配就是内存管理的概念。</p>
+<p>内存管理的功能有：</p>
 <ul>
-<li><p>共享内存</p>
-<p>线程之间共享程序的公共状态，通过写-读内存中的公共状态进行隐式通信</p>
+<li><p>内存空间的分配与回收</p>
+<p>由操作系统完成主存储器空间的分配和管理，使程序员摆脱存储分配的麻烦，提高编程效率。</p>
 </li>
-<li><p>消息传递</p>
-<p>线程之间必须通过发送消息来显式进行通信</p>
+<li><p>地址转换</p>
+<p>在多道程序环境下， 程序中的逻辑地址与内存中的物理地址不可能一致，因此存储管理必须提供地址变换功能，把逻辑地址转换成相应的物理地址。</p>
+</li>
+<li><p>内存空间的扩充</p>
+<p>利用虚拟存储技术或自动覆盖技术，从逻辑上扩充内存。</p>
+</li>
+<li><p>存储保护</p>
+<p>保证各道作业在各自的存储空间内运行，互不干扰</p>
 </li>
 </ul>
-<p>Java的并发采用的是共享内存模型，Java线程之间的通信总是隐式进行，整个通信过程对程序员完全透明。如果编写多线程程序的Java程序员不理解隐式进行的线程之间通信的工作机制，很可能会遇到各种奇怪的内存可见性问题。</p>
-<p><strong>JMM的抽象结构</strong></p>
-<p>Java线程之间的通信由Java内存模型控制，JMM决定一个线程对共享变量的写入何时对另一个线程可见。从抽象的角度来看，JMM定义了线程和主内存之间的抽象关系：线程之间的共享变量存储在主内存中，每个线程都有一个私有的本地内存，本地内存中存储了该线程以读/写共享变量的副本。本地内存是JMM的一个抽象概念，并不真实存在。它涵盖了缓存、写缓冲区、寄存器以及其他的硬件和编译器优化。</p>
-<p>如果线程A与线程B之间要通信的话，必须要经历下面2个步骤：</p>
+<p><strong>程序装入和链接</strong></p>
+<p>创建进程首先要将程序和数据装入内存。将用户源程序变为可在内存中执行的程序，通常需<br>要以下几个步骤：</p>
 <ul>
-<li>线程A把本地内存A中更新过的共享变量刷新到主内存中去</li>
-<li>线程B到主内存中去读取线程A之前已更新过的共享变量</li>
+<li>编译：由编译程序将用户源代码编译成若干个目标模块。</li>
+<li>链接： 由链接程序将编译后形成的一组目标模块，以及所需库函数链接在一起，形成<br>一个完整的装入模块。</li>
+<li>装入： 由装入程序将装入模块装入内存运行。</li>
 </ul>
-<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%8A%BD%E8%B1%A1%E7%BB%93%E6%9E%84.jpg" style="zoom:50%;" />
-
-<p><strong>重排序简介</strong></p>
-<p>在执行程序时，为了提高性能，编译器和处理器常常会对指令做重排序。</p>
-<p>重排序分成三种类型：</p>
+<p>链接方式：</p>
 <ul>
-<li>编译器优化的重排序。编译器在不改变单线程程序语义的前提下，可以重新安排语句<br>的执行顺序。</li>
-<li>指令级并行的重排序。现代处理器采用了指令级并行技术来将多条指令重叠执行。如果不存在数据依赖性，处理器可以改变语句对应机器指令的执行顺序。</li>
-<li>内存系统的重排序。由于处理器使用缓存和读/写缓冲区，这使得加载和存储操作看上去可能是在乱序执行。</li>
+<li><p>静态链接</p>
+<p>在程序运行之前，先将各目标模块及它们所需的库函数链接成一个完整的可执行程序，以后不再拆开</p>
+</li>
+<li><p>转入时动态链接</p>
+<p>将用户源程序编译后所得到的一组目标模块，在装入内存时，采用边装入边链接的链接方式。</p>
+</li>
+<li><p>运行时动态链接</p>
+<p>对某些目标模块的链接，是在程序执行中需要该目标模块时，才对它进行的链接。其优点是便于修改和更新，便于实现对目标模块的共享</p>
+</li>
 </ul>
-<img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/%E6%BA%90%E7%A0%81%E5%88%B0%E6%89%A7%E8%A1%8C%E5%BA%8F%E5%88%97.jpg" style="zoom:80%;" />
+<p>装入方式：</p>
+<ul>
+<li><p>绝对装入</p>
+<p>在编译时，如果知道程序将驻留在内存的某个位置，编译程序将产生绝对地址的目标代码。绝对装入程序按照装入模块中的地址，将程序和数据装入内存． 由于程序中的逻辑地址与实际内存地址完全相同，故不需对程序和数据的地址进行修改。</p>
+</li>
+<li><p>可重定位装入</p>
+<p>在多道程序环境下，多个目标模块的起始地址通常都是从0 开始， 程序中的其他地址都是相对于起始地址的，此时应采用可重定位装入方式。根据内存的当前情况，将装入模块装入到内存的适当位置。</p>
+</li>
+<li><p>动态运行时装入</p>
+<p>装入程序在把装入模块装入内存后， 并不立即把装入模块中的相对地址转换为绝对地址，而是把这种地址转换推迟到程序真正要执行时才进行</p>
+</li>
+</ul>
+<p><strong>覆盖和交换</strong></p>
+<ul>
+<li>覆盖：由于程序运行时并非任何时候都要访问程序及数据的各个部分（尤其是大程序〉，因此可以把用户壁间分成一个固定区和若干个覆盖区。将经常活跃的部分放在固定区，其余部分按调用关系分段。首先将那些即将要访问的段放入覆盖区，其他段放在外存中，在需要调用前，系统再将其调入覆盖区，替换覆盖区中原有的段。</li>
+<li>交换（对换）的基本思想是，把处于等待状态（或在CPU 调度原则下被剥夺运行权利）的程序从内存移到辅存，把内存空间腾出来，这一过程又叫换出：把准备好竞争CPU 运行的程序从辅存移到内存，这一过程又称为换入。第2 章介绍的中级调度就是采用交换技术。</li>
+</ul>
+<h5 id="2-连续分配管理方式"><a href="#2-连续分配管理方式" class="headerlink" title="2. 连续分配管理方式"></a>2. 连续分配管理方式</h5><ul>
+<li><p>单一连续分配</p>
+<p>交换（对换）的基本思想是，把处于等待状态（或在CPU 调度原则下被剥夺运行权利）的<br>程序从内存移到辅存，把内存空间腾出来，这一过程又叫换出：把准备好竞争CPU 运行的程序从<br>辅存移到内存，这一过程又称为换入。第2 章介绍的中级调度就是采用交换技术。</p>
+<p>这种方式的优点是简单、无外部碎片，可以采用覆盖技术，不需要额外的技术支持。缺点是只能用于单用户、单任务的操作系统中，有内部碎片，存储器的利用率极低。</p>
+</li>
+<li><p>固定分区分配</p>
+<p>固定分区分配是最简单的一种多道程序存储管理方式，它将用户内存空间划分为若干个固定<br>大小的区域，每个分区只装入一道作业。当有空闲分区时，便可以再从外存的后备作业队列中，<br>选择适当大小的作业装入该分区，如此循环。</p>
+</li>
+</ul>
+<ul>
+<li>动态分区分配</li>
+</ul>
 
-<p><strong>happen-before简介</strong></p>
-<p>happens-before的概念来阐述操作之间的内存可见性。在JMM中，如果一个操作执行的结果需要对另一个操作可见，那么这两个操作之间必须要存在happens-before关系。</p>
-<hr>
-<h5 id="2-重排序"><a href="#2-重排序" class="headerlink" title="2. 重排序"></a>2. 重排序</h5><p>重排序是指编译器和处理器为了优化程序性能而对指令序列进行重新排序的一种手段。</p>
-<p><strong>数据依赖性</strong></p>
-<p>如果两个操作访问同一个变量，且这两个操作中有一个为写操作，此时这两个操作之间就存在数据依赖性。</p>
-<p><strong>as-if-serial语义</strong></p>
-<p>不管怎么重排序，（单线程）程序的执行结果不能被改变。</p>
-<hr>
-<h5 id="3-顺序一致性"><a href="#3-顺序一致性" class="headerlink" title="3. 顺序一致性"></a>3. 顺序一致性</h5><p>顺序一致性内存模型是一个理论参考模型，在设计的时候，处理器的内存模型和编程语言的内存模型都会以顺序一致性内存模型作为参照。</p>
-<h5 id="4-volatitle的内存语义"><a href="#4-volatitle的内存语义" class="headerlink" title="4. volatitle的内存语义"></a>4. volatitle的内存语义</h5><h5 id="5-锁的内存语义"><a href="#5-锁的内存语义" class="headerlink" title="5. 锁的内存语义"></a>5. 锁的内存语义</h5><h5 id="6-final域的内存语义"><a href="#6-final域的内存语义" class="headerlink" title="6. final域的内存语义"></a>6. final域的内存语义</h5><h5 id="7-happen-before"><a href="#7-happen-before" class="headerlink" title="7. happen-before"></a>7. happen-before</h5><h5 id="8-双重检查锁的与延迟初始化"><a href="#8-双重检查锁的与延迟初始化" class="headerlink" title="8. 双重检查锁的与延迟初始化"></a>8. 双重检查锁的与延迟初始化</h5><h5 id="9-Java内存模型综述"><a href="#9-Java内存模型综述" class="headerlink" title="9. Java内存模型综述"></a>9. Java内存模型综述</h5>
       </div>
       
         <br>
@@ -438,10 +462,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-06T21:10:18+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-27T20:54:44+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Feb 6, 2020</p>
+    <p>updated at Feb 27, 2020</p>
   </a>
 </div>
 
@@ -460,7 +484,7 @@
       
         <a class="-mob-share-qq" title="QQ好友" rel="external nofollow noopener noreferrer"
           
-          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2020/02/06/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/&title=java内存模型 | Severin的博客&summary="
+          href="http://connect.qq.com/widget/shareqq/index.html?url=https://www.severin.xyz/2020/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/&title=操作系统总结之内存篇 | Severin的博客&summary="
           
           >
           
@@ -472,7 +496,7 @@
       
         <a class="-mob-share-qzone" title="QQ空间" rel="external nofollow noopener noreferrer"
           
-          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2020/02/06/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/&title=java内存模型 | Severin的博客&summary="
+          href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https://www.severin.xyz/2020/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/&title=操作系统总结之内存篇 | Severin的博客&summary="
           
           >
           
@@ -484,7 +508,7 @@
       
         <a class="-mob-share-weibo" title="微博" rel="external nofollow noopener noreferrer"
           
-          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2020/02/06/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/&title=java内存模型 | Severin的博客&summary="
+          href="http://service.weibo.com/share/share.php?url=https://www.severin.xyz/2020/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/&title=操作系统总结之内存篇 | Severin的博客&summary="
           
           >
           
@@ -508,28 +532,14 @@
       
           <div class="prev-next">
               
-                  <section class="prev">
-                      <span class="art-item-left">
-                          <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
-                          <h4>
-                              <a href="/2020/02/09/java%E5%B9%B6%E5%8F%91%E6%80%BB%E7%BB%93/" rel="prev" title="java并发总结">
-                                
-                                    java并发总结
-                                
-                              </a>
-                          </h4>
-                          
-                      </span>
-                  </section>
-              
               
                   <section class="next">
                       <span class="art-item-right" aria-hidden="true">
                           <h6>Next&nbsp;<i class="fas fa-chevron-right" aria-hidden="true"></i></h6>
                           <h4>
-                              <a href="/2020/02/01/TCP%E6%8A%93%E5%8C%85%E6%8E%A2%E7%A9%B6/" rel="prev" title="TCP抓包探究">
+                              <a href="/2020/02/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E8%BF%9B%E7%A8%8B%E7%AF%87/" rel="prev" title="操作系统总结之进程篇">
                                   
-                                      TCP抓包探究
+                                      操作系统总结之进程篇
                                   
                               </a>
                           </h4>
@@ -575,7 +585,7 @@
 
   <script>
     window.subData = {
-      title: 'java内存模型',
+      title: '操作系统总结之内存篇',
       tools: true
     }
   </script>
@@ -711,7 +721,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-Java内存模型的基础"><span class="toc-text">1. Java内存模型的基础</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-重排序"><span class="toc-text">2. 重排序</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-顺序一致性"><span class="toc-text">3. 顺序一致性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-volatitle的内存语义"><span class="toc-text">4. volatitle的内存语义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-锁的内存语义"><span class="toc-text">5. 锁的内存语义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#6-final域的内存语义"><span class="toc-text">6. final域的内存语义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#7-happen-before"><span class="toc-text">7. happen-before</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#8-双重检查锁的与延迟初始化"><span class="toc-text">8. 双重检查锁的与延迟初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#9-Java内存模型综述"><span class="toc-text">9. Java内存模型综述</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-内存管理概念"><span class="toc-text">1. 内存管理概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-连续分配管理方式"><span class="toc-text">2. 连续分配管理方式</span></a></li></ol>
     </div>
   </section>
 

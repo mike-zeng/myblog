@@ -354,14 +354,14 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>3.1k字</p>
+        <p>3.7k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
       <a class='notlink'>
         <i class="fas fa-hourglass-half" aria-hidden="true"></i>
         <p>阅读时长≈</p>
-        <p>10分</p>
+        <p>12分</p>
       </a>
     </div>
   
@@ -576,16 +576,23 @@
 </ul>
 <p><strong>实现临界区的方法</strong></p>
 <p><strong>软件实现</strong></p>
+<ul>
+<li>Peterson算法</li>
+</ul>
 <p><strong>硬件实现</strong></p>
 <ul>
 <li><p>中断屏蔽方法</p>
 <p>当一个进程正在使用处理机执行它的临界区代码时，要防止其他进程再进入其临界区访问的最简单方法是禁止一切中断发生，或称之为屏蔽中断、关中断。因为CPU 只在发生中断时引起进程切换，这样屏蔽中断就能保证当前运行进程将临界区代码顺利地执行完，从而保证了互斥的正确实现，然后再执行开中断。</p>
 </li>
 <li><p>硬件指令方法</p>
+<ul>
+<li>TestAndSet指令</li>
+<li>swap指令</li>
+</ul>
 </li>
-<li></li>
 </ul>
 <p><strong>信号量</strong></p>
+<p> 信号量是个整数变量，除了初始化外，它只能通过两个标准原子操作：wait()和signal()来访问。这些操作原来被称为P和V操作。wait会判断信号量是否&lt;=0，如果是的话就会阻塞，否则会将信号量减1，而single操作可以将信号量加1。信号量有两种分别是二进制信号量和计数信号量，二进制信号量的值只能取0和1，计数信号量的值可以是任何整数。</p>
 <p><strong>管程</strong></p>
 <p><strong>经典的同步问题</strong></p>
 <ul>
@@ -593,6 +600,42 @@
 <li>读者-写者问题</li>
 <li>哲学家进程问题</li>
 <li>吸烟者问题</li>
+</ul>
+<h5 id="4-死锁"><a href="#4-死锁" class="headerlink" title="4. 死锁"></a>4. 死锁</h5><p><strong>死锁发生的条件</strong></p>
+<ol>
+<li><p>互斥条件</p>
+<p>进程要求对所分配的资源（如打印机〉进行排他性控制，即在一段时间内某资源仅为一个进程所占有。此时若有其他进程请求该资源，则请求进程只能等待。</p>
+</li>
+<li><p>不可剥夺条件</p>
+<p>进程所获得的资源在未使用完毕之前，不能被其他进程强行夺走，即只能由获得该资源的进程自己来释放（只能是主动释放）。</p>
+</li>
+<li><p>请求和保持条件</p>
+<p>进程己经保持了至少一个资源，但又提出了新的资源请求，而该资源己被其他进程占有， 此时请求进程被阻塞，但对自己己获得的资源保持不放。</p>
+</li>
+<li><p>循环等待条件</p>
+<p>存在一种进程资源的循环等待链，链中每一个进程己获得的资源同时被链中下一个进程所请求</p>
+</li>
+</ol>
+<p><strong>死锁的处理</strong></p>
+<ul>
+<li><p>死锁预防</p>
+<p>设置某些限制条件，破坏产生死锁的四个必要条件中的一个或几个，以防止发生死锁。</p>
+</li>
+<li><p>死锁避免</p>
+<p>在资源的动态分配过程中，用某种方法防止系统进入不安全状态，从而避免死锁。如银行家算法。</p>
+</li>
+<li><p>死锁检测和解除</p>
+<p>无需采取任何限制性措施，允许进程在运行过程中发生死锁。通过系统的检测机构及时地检测出死锁的发生，然后采取某种措施解除死锁。</p>
+</li>
+</ul>
+<p><strong>如何解除死锁</strong></p>
+<ul>
+<li><p>资源剥夺法</p>
+<p>挂起某些死锁进程，并抢占它的资源，将这些资源分配给其他的死锁进程。但应防止被挂起的进程长时间得不到资源，而处于资源匮乏的状态</p>
+</li>
+<li><p>撤销进程法</p>
+<p>强制撤销部分、甚至全部死锁进程并剥夺这些进程的资源。撤销的原则可以按进程优先级和撤销进程代价的高低进行。</p>
+</li>
 </ul>
 
       </div>
@@ -609,7 +652,7 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-27T10:54:21+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-27T20:43:00+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
     <p>updated at Feb 27, 2020</p>
@@ -678,6 +721,20 @@
       
       
           <div class="prev-next">
+              
+                  <section class="prev">
+                      <span class="art-item-left">
+                          <h6><i class="fas fa-chevron-left" aria-hidden="true"></i>&nbsp;Previous</h6>
+                          <h4>
+                              <a href="/2020/02/27/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93%E4%B9%8B%E5%86%85%E5%AD%98%E7%AF%87/" rel="prev" title="操作系统总结之内存篇">
+                                
+                                    操作系统总结之内存篇
+                                
+                              </a>
+                          </h4>
+                          
+                      </span>
+                  </section>
               
               
                   <section class="next">
@@ -868,7 +925,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-进程与线程的基本概念"><span class="toc-text">1. 进程与线程的基本概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-进程调度"><span class="toc-text">2. 进程调度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-进程同步"><span class="toc-text">3. 进程同步</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-进程与线程的基本概念"><span class="toc-text">1. 进程与线程的基本概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-进程调度"><span class="toc-text">2. 进程调度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-进程同步"><span class="toc-text">3. 进程同步</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-死锁"><span class="toc-text">4. 死锁</span></a></li></ol>
     </div>
   </section>
 
