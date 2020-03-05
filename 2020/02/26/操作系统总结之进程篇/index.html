@@ -354,7 +354,7 @@
       <a class='notlink'>
         <i class="fas fa-keyboard" aria-hidden="true"></i>
         <p>字数统计:</p>
-        <p>3.7k字</p>
+        <p>3.9k字</p>
       </a>
     </div>
     <div class="new-meta-item readtime">
@@ -462,21 +462,26 @@
 </ul>
 <p><strong>进程通信</strong></p>
 <ul>
-<li><p>共享存储</p>
-<p>在通信的进程之间存在一块可直接访问的共享空间，通过对这片共享空间进行写／读操作实现进程之间的信息交换。</p>
+<li><p>管道</p>
+<p>管道是一种半双工的通信方式，可以看做是一种特殊的文件，但是这个文件只存在于内存中。管道只能用于举有亲缘关系的进程之间的通信，如父子进程/兄弟进程等。</p>
 </li>
-<li><p>消息传递</p>
-<ul>
-<li><p>直接通信</p>
-<p>发送进程直接把消息发送给接收进程，并将它挂在接收进程的消息缓冲队列上，接收进程从消息缓冲队列中取得消息</p>
+<li><p>FIFO</p>
+<p>FIFO也是以一种特殊的文件存放在内存中，但是FIFO文件有一个路径名，所以可以在无关的进程之间交换数据。</p>
 </li>
-<li><p>间接通信</p>
-<p>发送进程把消息发送到某个中间实体中，接收进程从中间实体中取得消息。这种中间实体一般称为信箱，这种通信方式又称为信箱通信方式</p>
+<li><p>消息队列</p>
+<p>消息队列，是消息的链接表，存放在内核中。一个消息队列由一个标识符（即队列ID）来标识。</p>
+<p>消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级。</p>
+<p>消息队列独立于发送与接收进程。进程终止时，消息队列及其内容并不会被删除。</p>
+<p>息队列可以实现消息的随机查询,消息不一定要以先进先出的次序读取,也可以按消息的类型读取。</p>
 </li>
-</ul>
+<li><p>信号量</p>
+<p>信号量用于进程间同步，若要在进程间传递数据需要结合共享内存。</p>
 </li>
-<li><p>管道通信</p>
-<p>管道通信是消息传递的一种特殊方式。所谓“ 管道“是指用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，又名pipe文件</p>
+<li><p>共享内存</p>
+<p>共享内存（Shared Memory），指两个或多个进程共享一个给定的存储区，信号量+共享内存通常结合在一起使用，信号量用来同步对共享内存的访问。</p>
+</li>
+<li><p>Socket</p>
+<p>通过网络或者是本地socket</p>
 </li>
 </ul>
 <p><strong>线程概念</strong></p>
@@ -637,7 +642,7 @@
 <p>强制撤销部分、甚至全部死锁进程并剥夺这些进程的资源。撤销的原则可以按进程优先级和撤销进程代价的高低进行。</p>
 </li>
 </ul>
-
+<h5 id="5-常见面试题"><a href="#5-常见面试题" class="headerlink" title="5. 常见面试题"></a>5. 常见面试题</h5>
       </div>
       
         <br>
@@ -652,10 +657,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-27T20:43:00+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-03-03T19:37:22+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Feb 27, 2020</p>
+    <p>updated at Mar 3, 2020</p>
   </a>
 </div>
 
@@ -925,7 +930,7 @@
 </header>
 
     <div class='content pure'>
-      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-进程与线程的基本概念"><span class="toc-text">1. 进程与线程的基本概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-进程调度"><span class="toc-text">2. 进程调度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-进程同步"><span class="toc-text">3. 进程同步</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-死锁"><span class="toc-text">4. 死锁</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-进程与线程的基本概念"><span class="toc-text">1. 进程与线程的基本概念</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-进程调度"><span class="toc-text">2. 进程调度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-进程同步"><span class="toc-text">3. 进程同步</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-死锁"><span class="toc-text">4. 死锁</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-常见面试题"><span class="toc-text">5. 常见面试题</span></a></li></ol>
     </div>
   </section>
 

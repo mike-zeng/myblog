@@ -409,7 +409,7 @@
 <p><img src="https://severinblog-1257009269.cos.ap-guangzhou.myqcloud.com/java%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/image-20200128195246.png" alt=""></p>
 </li>
 </ul>
-<h5 id="2-永久代和元空间的概念"><a href="#2-永久代和元空间的概念" class="headerlink" title="2. 永久代和元空间的概念"></a>2. 永久代和元空间的概念</h5><p>在JDK1.8之前方法区被称为“永久代”，原因是当时将方法区划分出一块永久代来实现方法区，这样垃圾收集器就可以像管理java堆来管理方法区，而到了jdk1.8，则是使用本地空间实现的元空间来代替永久代。</p>
+<h5 id="2-永久代和元空间的概念"><a href="#2-永久代和元空间的概念" class="headerlink" title="2. 永久代和元空间的概念"></a>2. 永久代和元空间的概念</h5><p>在JDK1.8之前方法区被称为“永久代”，原因是当时将堆划分出一块永久代来实现方法区，这样垃圾收集器就可以像管理java堆来管理方法区，而到了jdk1.8，则是使用本地空间实现的元空间来代替永久代。</p>
 <h5 id="3-什么是运行时常量池，存放什么"><a href="#3-什么是运行时常量池，存放什么" class="headerlink" title="3. 什么是运行时常量池，存放什么"></a>3. 什么是运行时常量池，存放什么</h5><p>运行时常量池是方法区的一部分。Class文件中除了有类的版本、字段、方法、接口等描述信息外，还有一项信息是常量池，用于存放编译期生成的<strong>各种字面量</strong>和<strong>符号引用</strong>，这部分内容将在类加载后进入方法区的运行时常量池中存放。</p>
 <h5 id="4-什么是直接内存，有什么用"><a href="#4-什么是直接内存，有什么用" class="headerlink" title="4.什么是直接内存，有什么用"></a>4.什么是直接内存，有什么用</h5><p>直接内存并不是虚拟机运行时数据区的一部分，也不是Java虚拟机规范中定义的内存区域。</p>
 <p>在JDK 1.4中新加入了NIO类，引入了一种基于通道与缓冲区的I/O方式，它可以使用Native函数库直接分配堆外内存，然后通过一个存储在Java堆中的DirectByteBuffer对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在Java堆和Native堆中来回复制数据。</p>
@@ -782,10 +782,10 @@
     <div class='new-meta-box'>
       
         
-          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-01-29T10:53:11+08:00">
+          <div class="new-meta-item date" itemprop="dateUpdated" datetime="2020-02-29T20:01:15+08:00">
   <a class='notlink'>
     <i class="fas fa-clock" aria-hidden="true"></i>
-    <p>updated at Jan 29, 2020</p>
+    <p>updated at Feb 29, 2020</p>
   </a>
 </div>
 
